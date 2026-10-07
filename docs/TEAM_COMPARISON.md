@@ -28,3 +28,28 @@ Compare structure, not 2026 game answers. Researched 2026-10-07 against
 | Custom AI/co-pilot + score rig | 8334 2026 | Measurable policy work (cards, sweeps, attribution) | Needs determinism + attribution discipline | Re-add as `Game/` consumers only: seeded RNG, sorted iteration, per-bot attribution, JSONL rows |
 
 2026Dreams warnings to enforce structurally: no parallel Blue/Red literals (derive Red), no zone edge outside its owner, no unseeded `Math.random()` in decision/sim paths, no test rewrite standing in for a fix, no sim statistic quoted from contaminated/parallel runs.
+
+## Innovation-landscape review (2026-10-07, alpha-7 branch)
+
+Evaluated an external 2026–2027 innovation report against what this migration
+proved. Verdicts below are build-backed; everything else is a rumor with a gate.
+
+- **Commands v3 is optional, not mandatory.** Alpha-7 still ships Commands v2
+  (bundled `CommandsV2.json`), the timed-skeleton template is still iterative,
+  and our `SubsystemManager` + threaded-mission architecture survived with
+  renames only. Spike v3 on one branch with one auto before any rewrite talk.
+- **YAGSL-on-SystemCore claims are premature.** No YAGSL 2027 exists, so the
+  stack is attic'd regardless of what ecosystem posts assume. Revisit only when
+  a release lands; until then the drive decision is vendor-free swerve vs.
+  waiting, tracked in `KNOWN_ISSUES.md` item 5.
+- **Telemetry migration is done, not a to-do.** `Telemetry.log`,
+  `Selectable` + `Tunables` table, `@AutoLog` structs all landed in this
+  migration and sim boots with them.
+- **Unverified rumors (do not roadmap until sourced):** BLine/BLine-Lib
+  (absent from WPILib's vendor metadata), YAMS adoption claims (present in the
+  2026 Gradle cache as `yams`/`yall`, never evaluated), Quarky, Hailo-8
+  pricing/dates, RP2350 firmware details, CTRE/REV LED-code changes, Limelight
+  OS USB/OTA specifics, and all team anecdotes. The report's own citations are
+  bare domains, and its ML-vision numbers are self-flagged as unavailable.
+- **NPU vision stays kickoff-gated.** No vision game exists yet; `VisionIO`
+  stub + sim twin is the correct holding pattern (see `docs/VISION.md`).

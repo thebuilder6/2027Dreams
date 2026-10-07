@@ -20,7 +20,9 @@ Ranked by foundation-before-features. All game-agnostic; kickoff adds a `Game/` 
 1. **Drive template** `[PARTIAL]` (was `[RESOLVED]` on 2026) — **blocked on YAGSL-2027 on the `wpilib-2027-alpha7` branch.** No YAGSL 2027 release exists (latest `2026.10.03`); per team decision the migration proceeded without it: `Subsystems/DriveControl.java` is the seam, `UnconfiguredDrive` is the explicit pending state, full YAGSL stack + return path in `attic/yagsl-drive/README.md`. `SwerveBase` feeds `RobotState` again on return. Evidence: branch `cleanTest test` 11 files / 27 tests green (drive tests attic'd with the code).
 2. **Mechanism template** `[RESOLVED]` — `Mechanism` + `MechanismIO`/`SparkMax`/`Sim` (analytic motor model on alpha-7, no vendor physics), `Hardware/SparkMaxMotor` wrapper, `RobotState` pose holder (drive feed resumes with the drive), sim battery model in `Robot`. Evidence: branch 27/27 green 2026-10-07. Open follow-ups: control laws (PID+FF, gravity arm, jam detection) arrive with real mechanisms; see §C.
 3. **Vision stub** `[RESOLVED]` — `VisionIO` (input-only) + `VisionIOSim` (connected, zero targets), `Vision` owns validity (`getEstimatedPose` empty unless fresh, 150 ms stale reject). Wired into `Robot`. Evidence: 19/19 green 2026-10-07. Open follow-ups: camera IOs, tag layout, and fusion at kickoff; see `docs/VISION.md`.
-4. **2027 beta import** `[OPEN]` — Java 25, `org.wpilib` renames, Commands v3 decision, vendor alpha pins. See `docs/2027_MIGRATION.md`.
+4. **2027 beta import** `[PARTIAL]` — migration executed on branch `wpilib-2027-alpha7` (Java 25, `org.wpilib`, akit alpha-6, REV alpha-8, sim boots, 27/27 green). Remaining: SystemCore deploy smoke (needs hardware), drive unblock (item 5), v3 spike (item 6). See `docs/2027_MIGRATION.md`.
+5. **Drive unblock** `[OPEN]` — vendor-free swerve on `DriveControl` (WPILib kinematics + `ModuleIO`, 6328 pattern) vs. waiting for YAGSL-2027. Nothing else unblocks until the robot drives; NPU vision, v3, and pathing work all queue behind this.
+6. **Commands v3 opt-in spike** `[OPEN]` — one branch, one auto, compare against `AutoMissionExecutor`. V3 is proven optional on alpha-7 (v2 still ships); no rewrite without spike evidence.
 
 ## A. Foundations
 
@@ -115,3 +117,25 @@ Engineering craft (offseason-friendly):
 - [ ] `[OPEN]` AI code-review layer (checklist in repo, e.g. Blue-origin/single-owner/no-`Math.random()` rules) + sim-crash CI gate. Seen on 360 2026 (~35 bugs caught); fits our lock protocol.
 - [ ] `[OPEN]` AdvantageScope Lite + SFTP log download + DS live mode evaluation at SystemCore bring-up. Research brief §4.
 - [ ] `[OPEN]` Commands v3 coroutine autos + `@Autonomous`/`@Teleop`/`@Utility` OpMode structure evaluation once the beta lands (no `RobotContainer`). Research brief §1; decision already tracked in §A item 4.
+
+## J. Architecture + clean-code queue (reviewed 2026-10-07, take after green)
+
+From an architect/clean-code review of `src/main` (import-graph checked: no
+cycles, no subsystem↔subsystem refs, vendor API only in
+`Hardware/SparkMaxMotor.java`, game numbers only in `Game/`). Sequencing: J1
+first (real bug), J2–J5 as one "seams" change, J6–J8 as Boy Scout passes, J9
+deferred to the Commands v3 decision. Dropped from the review before queueing:
+`DriverStationErrors` (now imported from `org.wpilib.driverstation` by the
+alpha-7 migration) and `DESIGN_PHILOSOPHY.md` count wording (fixed).
+
+- [ ] `[OPEN]` `initialize` is not fault-isolated. `SubsystemManager.initializeSubsystems` (`Subsystems/SubsystemManager.java:34`) runs a bare loop while the contract promises one bad subsystem never kills the loop — one throwing `initialize()` kills everything. Fix: route through `runGuarded(s, "initialize", s::initialize)`.
+- [ ] `[OPEN]` Subsystems choose their own IO impls. `Mechanism.java:43` and `Vision.java:43` branch on `isSimulation()` to `new` Sim vs hardware IO, so tests can't inject a fake and REPLAY isn't handled. Fix: ctor-injection only + factory on `Constants.getMode()`; `Robot.java` (composition root) picks the impl.
+- [ ] `[OPEN]` `AllianceFlipUtil` reads global `FieldMap` state (`Utils/AllianceFlipUtil.java:26,38` → `FieldMap.fieldLength()`). Functionally required for mirroring — either sanction the edge in `docs/ARCHITECTURE.md` or pass the length in. Companion nit: `FieldMap` news concrete `UnknownGame` instead of only the interface.
+- [ ] `[OPEN]` Attic `SwerveBase` reads alliance directly (×2). On promotion from `attic/yagsl-drive`, route both through `AllianceFlipUtil` (else a second geometry reader + hardcoded start poses). Keep its `RobotState` write — that half is the correct shared-estimate pattern.
+- [ ] `[OPEN]` `Teleop` owns hardware handles (`Teleop.java:33-34` news both `Controller`s; reads `Timer`/DS inline). Uninstantiable without HAL, untestable for alliance/time. Fix: inject controllers (or a stick interface) + `isRed`/clock. `operator` is dead until mechanisms land — wire or delete with them.
+- [ ] `[OPEN]` Dead/speculative weight: `template/TemplateIO.java` has zero implementors, `RobotState` has zero production readers/writers (tests only), `Controller.getButtonPressedOnce` (`Hardware/Controller.java:76`) has zero callers, `Controller.java` carries super-only stick overrides. Delete or wire — each is a trap for the next author.
+- [ ] `[OPEN]` Misleading names: `Mechanism.run(volts)` (`Subsystems/Mechanism.java:49`) only arms state for the next `update` (→ `requestVoltage`); `DoNothingMission` (`Auto/Missions/DoNothingMission.java:8-9`) re-asserts `setDone(false)` every tick — document that "runs until interrupted" is deliberate.
+- [ ] `[OPEN]` Copy-paste magnets: identical mode `switch` in `MechanismIOSim.java`/`MechanismIOSparkMax.java` (push onto the enum), triple loop in `SubsystemManager.java:34-56` (one `forEachGuarded` helper), throttle pattern shared by `Alert`/`SubsystemManager` (extract `ThrottledReporter`). Fix one per touch so the next subsystem doesn't clone the ritual.
+- [ ] `[OPEN]` `UnconfiguredDrive` half-silent (`Subsystems/UnconfiguredDrive.java:39,47-54`): `stop()`/`getPose()`/`getHeading()` don't `warnOnce()`, so origin reads are indistinguishable from real odometry. Fix: warn in all methods or document `@return origin placeholder`.
+- [ ] `[OPEN]` `Robot.java:138` uses fully-qualified `org.wpilib.simulation.BatterySim` instead of an import, dodging the import graph. Use a real import.
+- [ ] `[OPEN]` Deferred to the Commands v3 decision: splitting `Robot` (logger setup + auto factory + battery model), segregating the fat `Subsystem` interface, value types for volts/amps/temp and observation-time clumps. Correct, but wrong to do mid-migration.
