@@ -15,6 +15,7 @@ import frc.robot.Data.Constants;
 import frc.robot.Subsystems.SubsystemManager;
 import frc.robot.Subsystems.SwerveBase;
 import frc.robot.Subsystems.Vision;
+import frc.robot.Telemetry.AlertManager;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -86,6 +87,7 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     SubsystemManager.updateSubsystems();
     SubsystemManager.logSubsystems();
+    AlertManager.update();
   }
 
   @Override

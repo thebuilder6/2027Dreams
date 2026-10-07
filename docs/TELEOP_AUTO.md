@@ -28,6 +28,9 @@ mechanisms), co-pilot assist, or Choreo autos.
   default.
 - `Robot.java`: chooser holds **names**, `getAutoMissionForParams` builds a
   fresh mission per selection (stateful instances are never reused).
+- Composable steps: `Interfaces/Action` + `Auto/Actions/WaitAction` +
+  `Auto/Actions/SeriesAction`, adapted by `Auto/Missions/ActionMission`
+  (`init→start`, `run→update`, `isDone→isFinished`, `end→done`).
 
 ## Verification
 

@@ -28,7 +28,7 @@ public class Vision implements Subsystem {
   private final VisionIO io;
   private final VisionIOInputsAutoLogged inputs = new VisionIOInputsAutoLogged();
   private final Alert disconnectedAlert =
-      new Alert("VisionDisconnected", AlertType.WARNING);
+      new Alert("Vision", "Disconnected: odometry only", AlertType.WARNING);
 
   public static synchronized Vision getInstance() {
     if (instance == null) {

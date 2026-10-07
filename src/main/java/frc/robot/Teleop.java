@@ -1,15 +1,16 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.Data.Constants;
+import frc.robot.Hardware.Controller;
 import frc.robot.Hardware.PortMap;
 import frc.robot.Subsystems.SwerveBase;
 import frc.robot.Utils.AllianceFlipUtil;
+import frc.robot.Utils.Vector2dSlewRateLimiter;
 
 /**
  * Driver/operator input. Owns controllers + input cleanup chain. Subsystem
@@ -26,14 +27,12 @@ public final class Teleop {
   public static final double SLOW_ROTATION_SCALE = 0.50;
   private static final double REZERO_DOUBLE_TAP_SECS = 0.4;
 
-  private final XboxController driver = new XboxController(PortMap.DRIVER_CONTROLLER);
-  private final XboxController operator = new XboxController(PortMap.OPERATOR_CONTROLLER);
+  private final Controller driver = new Controller(PortMap.DRIVER_CONTROLLER);
+  private final Controller operator = new Controller(PortMap.OPERATOR_CONTROLLER);
   private final SwerveBase swerve;
 
-  private final SlewRateLimiter xLimiter =
-      new SlewRateLimiter(Constants.OperatorConstants.TRANSLATION_SLEW_RATE);
-  private final SlewRateLimiter yLimiter =
-      new SlewRateLimiter(Constants.OperatorConstants.TRANSLATION_SLEW_RATE);
+  private final Vector2dSlewRateLimiter transLimiter =
+      new Vector2dSlewRateLimiter(Constants.OperatorConstants.TRANSLATION_SLEW_RATE);
   private final SlewRateLimiter rotLimiter =
       new SlewRateLimiter(Constants.OperatorConstants.ROTATION_SLEW_RATE);
 
@@ -68,8 +67,7 @@ public final class Teleop {
 
   /** Reset slew/limiter state on mode entry so stale state can't cap response. */
   public void init() {
-    xLimiter.reset(0.0);
-    yLimiter.reset(0.0);
+    transLimiter.reset(0.0, 0.0);
     rotLimiter.reset(0.0);
     slowMode = false;
     lastAPressSecs = -1.0;
@@ -104,8 +102,9 @@ public final class Teleop {
 
     double transScale = (slowMode ? SLOW_TRANSLATION_SCALE : 1.0) * Constants.MAX_SPEED;
     double rotScale = (slowMode ? SLOW_ROTATION_SCALE : 1.0) * Constants.MAX_ROTATION_SPEED;
-    double vx = xLimiter.calculate(forward) * transScale;
-    double vy = yLimiter.calculate(strafe) * transScale;
+    Translation2d limited = transLimiter.calculate(forward, strafe);
+    double vx = limited.getX() * transScale;
+    double vy = limited.getY() * transScale;
     double omega = rotLimiter.calculate(shapeRotation(-driver.getRightX())) * rotScale;
     swerve.driveFieldOriented(new ChassisSpeeds(vx, vy, omega));
   }
@@ -114,11 +113,11 @@ public final class Teleop {
     return slowMode;
   }
 
-  public XboxController getDriver() {
+  public Controller getDriver() {
     return driver;
   }
 
-  public XboxController getOperator() {
+  public Controller getOperator() {
     return operator;
   }
 }
