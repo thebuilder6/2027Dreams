@@ -185,3 +185,9 @@ compile_commands.json
 
 # Eclipse generated file for annotation processors
 .factorypath
+
+# Agent lock state (tools/lock) — advisory, per-machine, never commit
+.locks/
+
+# Generated build metadata (generateBuildConstants) — regenerates every compile
+src/main/java/frc/robot/BuildConstants.java
