@@ -18,7 +18,7 @@ Must use the WPILib 2026 JDK until the 2027 beta is installed:
 $env:JAVA_HOME = "C:\Users\Public\wpilib\2026\jdk"
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 .\gradlew.bat compileJava --offline   # fast compile
-.\gradlew.bat test --offline          # JUnit 5 suite (7 files / 16 tests as of 2026-10-07)
+.\gradlew.bat test --offline          # JUnit 5 suite (8 files / 19 tests as of 2026-10-07)
 .\gradlew.bat simulateJava            # desktop SimGUI
 .\gradlew.bat deploy                  # deploy to controller (same JAVA_HOME)
 ```
@@ -77,7 +77,7 @@ Reasoning, the conflict matrix, and recovery recipes: `docs/COORDINATION.md`.
 
 ## Testing / sim notes
 
-- Tests live in `src/test/java/frc/robot/` mirroring package names. Current suite: 7 files / 16 tests (see `docs/CHANGELOG.md` for the count stamp).
+- Tests live in `src/test/java/frc/robot/` mirroring package names. Current suite: 8 files / 19 tests (see `docs/CHANGELOG.md` for the count stamp).
 - `test { useJUnitPlatform() }`; prefer `--tests` for single-file runs.
 - Tests touching sim physics, `Timer`, or HAL natives must call `HAL.initialize(500, 0)` in setup — without it the test JVM dies inside `wpiHal.dll` (see `hs_err_pid*.log`, gitignored). 2026 convention, kept here.
 - The fault-isolation test intentionally triggers a `SubsystemManager isolated exploding.update` warning on stderr — expected, not a failure. PowerShell surfaces it as `NativeCommandError` with exit 1 even though the build reports `BUILD SUCCESSFUL`; trust the build result.

@@ -13,6 +13,7 @@ import frc.robot.Auto.Missions.DoNothingMission;
 import frc.robot.Data.Constants;
 import frc.robot.Subsystems.SubsystemManager;
 import frc.robot.Subsystems.SwerveBase;
+import frc.robot.Subsystems.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -31,6 +32,7 @@ public class Robot extends LoggedRobot {
   private final AutoMissionExecutor autoExecutor = new AutoMissionExecutor();
   private final SendableChooser<MissionBase> autoChooser = new SendableChooser<>();
   private final SwerveBase swerveBase = SwerveBase.getInstance();
+  private final Vision vision = Vision.getInstance();
 
   public Robot() {
     super(Constants.LOOP_PERIOD_SECS);

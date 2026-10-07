@@ -17,6 +17,7 @@ Read order: `AGENTS.md` → this file → one topic guide → `KNOWN_ISSUES.md`.
 | `2027_MIGRATION.md` | WPILib 2026 → 2027 beta + roboRIO → SystemCore checklist |
 | `TEAM_COMPARISON.md` | How other teams structure code vs 2026Dreams lessons (6328 verified) |
 | `RESOURCES.md` | Vendor docs, 2027 migration sources, leading-team repos (links only) |
+| `VISION.md` | VisionIO contract, empty sim twin, validity policy |
 | `COORDINATION.md` | Lock reasoning, conflict matrix, recovery recipes |
 | `SWERVE_SETUP.md` | YAGSL JSONs, vendorpins, sim-without-hardware |
 | `MECHANISMS.md` | TemplateIO consumers, SparkMax wrapper, RobotState, battery model |

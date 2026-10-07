@@ -8,7 +8,7 @@ status: living
 
 # Known Issues & Roadmap
 
-> **Latest clean run (2026-10-07, offline): 7 test files / 16 tests, `BUILD SUCCESSFUL`.** Counts are source tests plus the measured run; historical counts below are checkpoints, not current totals.
+> **Latest clean run (2026-10-07, offline): 8 test files / 19 tests, `BUILD SUCCESSFUL`.** Counts are source tests plus the measured run; historical counts below are checkpoints, not current totals.
 
 Add entries as `- [ ] description`. Include repro or file refs so future sessions can verify.
 Status tags: `[OPEN]`, `[PARTIAL]` (partly implemented), `[STALE]` (no repro since), and `[RESOLVED]` (fixed/closed).
@@ -19,7 +19,7 @@ Ranked by foundation-before-features. All game-agnostic; kickoff adds a `Game/` 
 
 1. **Drive template** `[RESOLVED]` — `SwerveBase` + `DriveIO`/`DriveIOSparkMax`/`DriveIOSim`, YAGSL `2026.1.14` pinned, 8 placeholder JSONs (must regenerate via configurator — see `docs/SWERVE_SETUP.md`). Evidence: 11/11 green 2026-10-07. Open follow-up: YAGSL-vs-custom decision is settled (YAGSL, per team choice); path following + vision fusion still open.
 2. **Mechanism template** `[RESOLVED]` — `Mechanism` + `MechanismIO`/`SparkMax`/`Sim` (`DCMotorSim`, no vendor physics), `Hardware/SparkMaxMotor` wrapper, `RobotState` pose holder fed by `SwerveBase`, sim battery model in `Robot`. Evidence: 16/16 green 2026-10-07. Open follow-ups: control laws (PID+FF, gravity arm, jam detection) arrive with real mechanisms; see §C.
-3. **Vision stub** `[OPEN]` — `VisionIO` + sim twin, no game targets until kickoff.
+3. **Vision stub** `[RESOLVED]` — `VisionIO` (input-only) + `VisionIOSim` (connected, zero targets), `Vision` owns validity (`getEstimatedPose` empty unless fresh, 150 ms stale reject). Wired into `Robot`. Evidence: 19/19 green 2026-10-07. Open follow-ups: camera IOs, tag layout, and fusion at kickoff; see `docs/VISION.md`.
 4. **2027 beta import** `[OPEN]` — Java 25, `org.wpilib` renames, Commands v3 decision, vendor alpha pins. See `docs/2027_MIGRATION.md`.
 
 ## A. Foundations
