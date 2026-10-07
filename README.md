@@ -1,57 +1,64 @@
 # 2027Dreams — FRC Team 8334
 
-Java Timed Skeleton robot project (WPILib 2026.2.1).
+Generic 2027 robot base (WPILib 2026.2.1, Java 17): YAGSL swerve, AdvantageKit
+logging, IO-layer subsystems, auto/teleop loop. No game code until kickoff —
+game numbers live in `Game/` only.
 
-> Note: You asked for Year 2027, but WPILib 2027 is not released yet.
-> This project scaffolds against the latest installed version (2026).
-> When 2027 WPILib releases, open it in 2027 WPILib VS Code and use
-> `WPILib: Set Project to 2027` to upgrade.
+New here? Start with `docs/ONBOARDING.md` (install → build → test → sim in
+about 30 minutes). Agents: read `AGENTS.md` first.
 
-## Template
-- Language: Java 17
-- Base: Timed Skeleton (`TimedRobot` stub, no comments/example code)
-- Package: `frc.robot`
-- Main class: `frc.robot.Main`
+## Quickstart (Windows PowerShell, repo root)
+
+All commands need the WPILib 2026 JDK on `PATH`:
+
+```powershell
+$env:JAVA_HOME = "C:\Users\Public\wpilib\2026\jdk"
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+.\gradlew.bat compileJava --offline   # fast compile
+.\gradlew.bat test --offline          # full suite (13 files / 33 tests)
+.\gradlew.bat simulateJava            # desktop SimGUI (needs sim-gui lock)
+```
+
+- Always use `.\gradlew.bat`, never system `gradle`; always `--offline`.
+- `build/` is single-tenant on this shared tree: guard it with
+  `powershell -File tools/lock/acquire.ps1 -Resource gradle-build -Reason "..."`
+  (release afterwards) — see `AGENTS.md` §Resource coordination.
+- One test: `.\gradlew.bat test --offline --tests "frc.robot.Utils.AllianceFlipUtilTest"`.
+- Green looks like `BUILD SUCCESSFUL`. Two harmless warnings: a
+  `SubsystemManager isolated exploding.update` line (an intentional
+  fault-isolation test) and PowerShell `NativeCommandError` exit 1 — trust the
+  `BUILD SUCCESSFUL` line.
 
 ## Project layout
-```
-.vscode/                  VS Code + WPILib settings
-.wpilib/wpilib_preferences.json  Team number, year, language
-src/main/java/frc/robot/  Main.java, Robot.java
-src/main/deploy/          Static files deployed to /home/lvuser/deploy
-vendordeps/               Vendor JSON deps (WPILibNewCommands)
-build.gradle              GradleRIO 2026.2.1
-settings.gradle
-gradle/wrapper/
-```
 
-## Prerequisites
-- WPILib 2026 WPILib VS Code (C:\Users\Public\wpilib\2026\vscode) — recommended to open this folder with `frccode2026`
-- JDK 17 (bundled at `C:\Users\Public\wpilib\2026\jdk`)
-- Team number set to 8334 in `.wpilib/wpilib_preferences.json`
-
-## Build / Simulate
-```powershell
-# Windows
-.\gradlew.bat build
-.\gradlew.bat runSimulation
-.\gradlew.bat deploy   # needs robot connection + team number
+```
+src/main/java/frc/robot/  Robot.java, Teleop.java (+ Auto/, Game/, Hardware/,
+                          Interfaces/, Navigation/, Subsystems/, Telemetry/,
+                          Utils/, Data/)
+src/main/deploy/swerve/   8 placeholder YAGSL JSONs (regenerate: docs/SWERVE_SETUP.md)
+src/test/java/frc/robot/  Mirrors main; copy TeleopTest.java as your first test
+vendordeps/               YAGSL, REVLib, Phoenix, AdvantageKit pins
+tools/lock/               Shared-tree locks (gradle-build / sim-gui / deploy)
+docs/                     Start at docs/INDEX.md (map of every guide)
 ```
 
-Or in WPILib VS Code: `Ctrl+Shift+P → WPILib: Build Robot Code / Simulate Robot Code / Deploy Robot Code`.
+## Docs (single map: `docs/INDEX.md`)
 
-## Git
-This folder is a git repo with an initial commit.
-To link to GitHub (gh auth currently expired):
-```powershell
-gh auth login -h github.com
-gh repo create 2027Dreams --source=. --private --push
-# or for existing remote:
-# git remote add origin https://github.com/<org>/2027Dreams.git
-# git push -u origin main
-```
+| You want | Read |
+|---|---|
+| Build/test/sim rules | `AGENTS.md` |
+| Architecture contracts | `docs/ARCHITECTURE.md` |
+| Swerve JSON setup | `docs/SWERVE_SETUP.md` |
+| First mechanism | `docs/MECHANISMS.md` |
+| Vision stub | `docs/VISION.md` |
+| Teleop + auto loop | `docs/TELEOP_AUTO.md` |
+| Roadmap / what is missing | `KNOWN_ISSUES.md` |
+| 2027 beta checklist | `docs/2027_MIGRATION.md` |
 
-## Next steps
-- Add subsystems/commands under `frc.robot`
-- Add vendordeps via `WPILib: Manage Vendor Libraries`
-- Set `Current Game` / update firmware when 2027 season starts
+Rule: `build.gradle` + source beat prose when they conflict.
+
+## Deploy
+
+Needs robot connection + team 8334 (already in `.wpilib/wpilib_preferences.json`).
+Target is still roboRIO; the SystemCore move happens with the 2027 beta
+(see `docs/2027_MIGRATION.md`). Guard shared deploys with the `deploy` lock.

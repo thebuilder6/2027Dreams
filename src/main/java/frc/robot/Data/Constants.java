@@ -49,6 +49,7 @@ public final class Constants {
   public static final class AutonConstants {
     private AutonConstants() {}
 
+    // Placeholders — tune on a real chassis (see docs/SWERVE_SETUP.md).
     public static final double AUTO_DRIVE_KP = 10.0;
     public static final double AUTO_TURN_KP = 7.5;
   }
@@ -57,7 +58,7 @@ public final class Constants {
   public static class CheckPullRequest {
     public static void main(String... args) {
       if (TUNING_MODE) {
-        System.err.println("Do not merge, tuning mode is enabled.");
+        System.err.println("Do not merge, tuning mode is enabled (set Constants.TUNING_MODE = false).");
         System.exit(1);
       }
     }

@@ -68,8 +68,15 @@ public class Controller extends XboxController {
     }
   }
 
-  /** Edge-triggered button read with latch: true once per press. */
-  public boolean getDebouncedButton(int button) {
+  /**
+   * Edge-triggered button read: returns {@code true} exactly once per press.
+   * This is a press <b>latch</b>, not a debounced level — do not poll it as
+   * "is held". Prefer WPILib's {@code getXButtonPressed()} style reads (as
+   * {@code Teleop} does) unless you need a raw button number.
+   *
+   * @param button WPILib raw button number (1-based, see controller layout)
+   */
+  public boolean getButtonPressedOnce(int button) {
     boolean latched = debounceButtons.getOrDefault(button, false);
     if (getRawButton(button) && latched) {
       debounceButtons.put(button, false);

@@ -31,4 +31,7 @@ TELEMETRY                    Alert + AlertManager + wpilog (Dashboard/Tunables l
 
 ## What is deliberately missing
 
-YAGSL swerve JSON, AdvantageKit wiring, vision, GameSim/fuel/score, Jev AI, multi-bot sim, Choreo autos, dashboard layouts. Each has a named seam above so it plugs in without rewiring the base. See `DESIGN_PHILOSOPHY.md`.
+Game code (`Game/` has only `UnknownGame`), Choreo autos, dashboard layouts,
+and the `KNOWN_ISSUES.md` §§B–I roadmap (pathfinding, mechanisms, Jev AI,
+multi-bot sim, score rig). Each has a named seam above so it plugs in without
+rewiring the base. See `DESIGN_PHILOSOPHY.md`.

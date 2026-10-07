@@ -70,7 +70,14 @@ public final class SubsystemManager {
       if (last == null || now - last > REPORT_THROTTLE_NANOS) {
         lastReportNanos.put(name, now);
         DriverStation.reportWarning(
-            "SubsystemManager isolated " + name + "." + phase + " failure: " + e, false);
+            "SubsystemManager isolated "
+                + name
+                + "."
+                + phase
+                + " failure: "
+                + e
+                + " (contract: docs/ARCHITECTURE.md)",
+            false);
       }
     }
   }

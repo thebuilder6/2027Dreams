@@ -26,6 +26,9 @@ public final class Teleop {
   public static final double SLOW_TRANSLATION_SCALE = 0.35;
   public static final double SLOW_ROTATION_SCALE = 0.50;
   private static final double REZERO_DOUBLE_TAP_SECS = 0.4;
+  /** Cubic blend: heavy center precision, still 100% at full throw. */
+  private static final double SHAPE_CUBIC_WEIGHT = 0.7;
+  private static final double SHAPE_LINEAR_WEIGHT = 0.3;
 
   private final Controller driver = new Controller(PortMap.DRIVER_CONTROLLER);
   private final Controller operator = new Controller(PortMap.OPERATOR_CONTROLLER);
@@ -46,7 +49,7 @@ public final class Teleop {
   /** Cubic: precision at center, 100% at full throw. */
   public static double shapeInput(double x) {
     double a = Math.abs(x);
-    return Math.signum(x) * (0.7 * a * a * a + 0.3 * a);
+    return Math.signum(x) * (SHAPE_CUBIC_WEIGHT * a * a * a + SHAPE_LINEAR_WEIGHT * a);
   }
 
   /** Circular (not square) translation deadband + shape, angle preserved. */
@@ -93,6 +96,8 @@ public final class Teleop {
     }
 
     // Stick up/left read negative: negate so push-away is +forward/+left.
+    // Convention: shaped (x = strafe, y = forward). The limiter stores
+    // (forward, strafe), so vx reads getX() and vy reads getY() below.
     Translation2d shaped =
         shapeTranslation(-driver.getLeftX(), -driver.getLeftY());
     // Red: push-away is -X (away from the Red driver), so negate both axes.

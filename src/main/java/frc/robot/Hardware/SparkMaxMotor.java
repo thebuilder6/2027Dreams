@@ -12,6 +12,11 @@ import com.revrobotics.spark.config.SparkMaxConfig;
  * Thin REV SparkMax (NEO) wrapper so IO classes never touch the REV API
  * directly. Construction never throws — a missing controller yields a null
  * motor and zeroed reads, so sim/CI without hardware still constructs.
+ *
+ * <p>Silence is deliberate, not a swallowed error: there is no CAN bus in
+ * sim or unit tests, so failure is the common case there. On a real robot,
+ * call {@link #isConnected()} after construction to detect a missing
+ * controller (and raise an {@code Alert}) instead of driving blind.
  */
 public class SparkMaxMotor {
   private SparkMax motor;

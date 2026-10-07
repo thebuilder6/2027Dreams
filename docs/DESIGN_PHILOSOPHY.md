@@ -8,7 +8,7 @@ status: authoritative
 
 # Design philosophy — what carries into advanced features
 
-Distilled from 2026Dreams (`TitanRoboticsBuildSeason`, 467 tests green 2026-10-06). Each principle names the seam that makes it real.
+Distilled from 2026Dreams (`TitanRoboticsBuildSeason`, 467 tests green 2026-10-06 — the 2026 repo, not this tree). Each principle names the seam that makes it real.
 
 1. **Game-agnostic core, game-specific leaves.** Generic code takes a `GameDefinition`; only `Game/` knows field targets. Advanced features (auto-choosers, decision engines, score rigs) consume the interface, so kickoff adds a class instead of rewriting the robot.
 2. **Single owner per fact.** Ports → `PortMap`. Field dims → `FieldMap` ← `GameDefinition`. Alliance mirroring → `AllianceFlipUtil`. Zone edges, RPM tables, path margins each get one owner. 2026 drift bugs (hardcoded `4.60` vs owned `4.6256`, parallel Blue/Red literals) are impossible by construction.

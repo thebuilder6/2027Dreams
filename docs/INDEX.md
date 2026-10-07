@@ -9,6 +9,7 @@ status: authoritative
 # Docs index — 2027Dreams
 
 Read order: `AGENTS.md` → this file → one topic guide → `KNOWN_ISSUES.md`.
+New student? Read `README.md` → `docs/ONBOARDING.md` instead, then come back here.
 
 | Guide | Owns |
 |---|---|
@@ -16,6 +17,7 @@ Read order: `AGENTS.md` → this file → one topic guide → `KNOWN_ISSUES.md`.
 | `DESIGN_PHILOSOPHY.md` | Principles that survive game changes + advanced-feature seams |
 | `2027_MIGRATION.md` | WPILib 2026 → 2027 beta + roboRIO → SystemCore checklist |
 | `TEAM_COMPARISON.md` | How other teams structure code vs 2026Dreams lessons (6328 verified) |
+| `ONBOARDING.md` | Student path: install → build → test → sim → first change (start here) |
 | `RESOURCES.md` | Vendor docs, 2027 migration sources, leading-team repos (links only) |
 | `VISION.md` | VisionIO contract, empty sim twin, validity policy |
 | `TELEOP_AUTO.md` | Driver bindings, mission executor, template missions |

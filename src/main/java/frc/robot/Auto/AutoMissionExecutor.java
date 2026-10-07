@@ -5,6 +5,12 @@ import edu.wpi.first.wpilibj.Timer;
 /**
  * Runs one {@link MissionBase} on its own thread at 50 Hz. Single-threaded by
  * construction: {@code start} stops any running mission first.
+ *
+ * <p><b>Thread warning for newcomers:</b> mission {@code run} executes off the
+ * main robot thread, so it must never touch subsystems or NetworkTables
+ * directly. Inject suppliers/consumers instead (see {@code DriveDistanceMission}).
+ * A throwing mission stops silently by design — reproduce it in a unit test,
+ * where the exception surfaces, rather than on the robot.
  */
 public final class AutoMissionExecutor {
   private static final double PERIOD_SEC = 0.02;
@@ -30,6 +36,8 @@ public final class AutoMissionExecutor {
                 try {
                   current.run(Timer.getFPGATimestamp());
                 } catch (Exception e) {
+                  // Silent by design: this thread has no HAL-safe way to report
+                  // in unit tests. Reproduce in a test to see the stack trace.
                   break;
                 }
                 try {
