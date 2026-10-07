@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Auto.AutoMissionExecutor;
 import frc.robot.Auto.MissionBase;
 import frc.robot.Auto.Missions.DoNothingMission;
+import frc.robot.Auto.Missions.DriveDistanceMission;
 import frc.robot.Data.Constants;
 import frc.robot.Subsystems.SubsystemManager;
 import frc.robot.Subsystems.SwerveBase;
@@ -28,11 +29,13 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
  * the cached inputs object.
  */
 public class Robot extends LoggedRobot {
-  private final Teleop teleop = new Teleop();
-  private final AutoMissionExecutor autoExecutor = new AutoMissionExecutor();
-  private final SendableChooser<MissionBase> autoChooser = new SendableChooser<>();
   private final SwerveBase swerveBase = SwerveBase.getInstance();
   private final Vision vision = Vision.getInstance();
+  private final Teleop teleop = new Teleop(swerveBase);
+  private final AutoMissionExecutor autoExecutor = new AutoMissionExecutor();
+  private final SendableChooser<String> autoChooser = new SendableChooser<>();
+  private static final String AUTO_DO_NOTHING = "Do Nothing";
+  private static final String AUTO_DRIVE_FORWARD = "Drive Forward 2m";
 
   public Robot() {
     super(Constants.LOOP_PERIOD_SECS);
@@ -60,8 +63,18 @@ public class Robot extends LoggedRobot {
     Logger.start();
 
     DriverStation.silenceJoystickConnectionWarning(true);
-    autoChooser.setDefaultOption("Do Nothing", new DoNothingMission());
+    autoChooser.setDefaultOption(AUTO_DO_NOTHING, AUTO_DO_NOTHING);
+    autoChooser.addOption(AUTO_DRIVE_FORWARD, AUTO_DRIVE_FORWARD);
     SmartDashboard.putData("Auto Mission", autoChooser);
+  }
+
+  /** Fresh mission per selection — chooser holds names, never stateful instances. */
+  MissionBase getAutoMissionForParams(String name) {
+    if (AUTO_DRIVE_FORWARD.equals(name)) {
+      return new DriveDistanceMission(
+          swerveBase::getPose, swerveBase::driveFieldOriented, 2.0, 5.0);
+    }
+    return new DoNothingMission();
   }
 
   @Override
@@ -77,11 +90,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void autonomousInit() {
-    MissionBase selected = autoChooser.getSelected();
-    if (selected == null) {
-      selected = new DoNothingMission();
-    }
-    autoExecutor.start(selected);
+    autoExecutor.start(getAutoMissionForParams(autoChooser.getSelected()));
   }
 
   @Override
@@ -94,11 +103,14 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    teleop.teleopPeriodic();
+  }
 
   @Override
   public void disabledInit() {
     autoExecutor.stop();
+    swerveBase.stop();
   }
 
   @Override

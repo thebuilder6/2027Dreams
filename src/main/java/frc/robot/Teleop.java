@@ -3,21 +3,32 @@ package frc.robot;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.Data.Constants;
 import frc.robot.Hardware.PortMap;
+import frc.robot.Subsystems.SwerveBase;
+import frc.robot.Utils.AllianceFlipUtil;
 
 /**
  * Driver/operator input. Owns controllers + input cleanup chain. Subsystem
  * calls plug in here as mechanisms land. Order matters: circular deadband →
  * cubic shape → slew → scale → Red flip.
+ *
+ * <p>Bindings (driver): left stick drive, right stick rotate, left-stick-click
+ * toggles slow mode, double-tap A re-zeroes the gyro, Back+Start e-stops.
  */
 public final class Teleop {
   public static final double TRANSLATION_DEADBAND = Constants.OperatorConstants.TRANSLATION_DEADBAND;
   public static final double ROTATION_DEADBAND = Constants.OperatorConstants.ROTATION_DEADBAND;
+  public static final double SLOW_TRANSLATION_SCALE = 0.35;
+  public static final double SLOW_ROTATION_SCALE = 0.50;
+  private static final double REZERO_DOUBLE_TAP_SECS = 0.4;
 
   private final XboxController driver = new XboxController(PortMap.DRIVER_CONTROLLER);
   private final XboxController operator = new XboxController(PortMap.OPERATOR_CONTROLLER);
+  private final SwerveBase swerve;
 
   private final SlewRateLimiter xLimiter =
       new SlewRateLimiter(Constants.OperatorConstants.TRANSLATION_SLEW_RATE);
@@ -25,6 +36,13 @@ public final class Teleop {
       new SlewRateLimiter(Constants.OperatorConstants.TRANSLATION_SLEW_RATE);
   private final SlewRateLimiter rotLimiter =
       new SlewRateLimiter(Constants.OperatorConstants.ROTATION_SLEW_RATE);
+
+  private boolean slowMode = false;
+  private double lastAPressSecs = -1.0;
+
+  public Teleop(SwerveBase swerve) {
+    this.swerve = swerve;
+  }
 
   /** Cubic: precision at center, 100% at full throw. */
   public static double shapeInput(double x) {
@@ -42,11 +60,10 @@ public final class Teleop {
     return new Translation2d(x / mag * scaled, y / mag * scaled);
   }
 
-  /** 1D rotation deadband + shape. */
+  /** 1D rotation deadband + shape (applyDeadband already normalizes to full scale). */
   public static double shapeRotation(double x) {
-    return MathUtil.applyDeadband(x, ROTATION_DEADBAND) == 0.0
-        ? 0.0
-        : shapeInput(MathUtil.applyDeadband(x, ROTATION_DEADBAND) / (1.0 - ROTATION_DEADBAND));
+    double deadbanded = MathUtil.applyDeadband(x, ROTATION_DEADBAND);
+    return deadbanded == 0.0 ? 0.0 : shapeInput(deadbanded);
   }
 
   /** Reset slew/limiter state on mode entry so stale state can't cap response. */
@@ -54,6 +71,47 @@ public final class Teleop {
     xLimiter.reset(0.0);
     yLimiter.reset(0.0);
     rotLimiter.reset(0.0);
+    slowMode = false;
+    lastAPressSecs = -1.0;
+  }
+
+  /** One 20 ms tick: e-stop check, drive, mechanism bindings. */
+  public void teleopPeriodic() {
+    if (driver.getBackButton() && driver.getStartButton()) {
+      swerve.stop();
+      return;
+    }
+    if (driver.getLeftStickButtonPressed()) {
+      slowMode = !slowMode;
+    }
+    if (driver.getAButtonPressed()) {
+      double now = Timer.getTimestamp();
+      if (lastAPressSecs >= 0.0 && now - lastAPressSecs <= REZERO_DOUBLE_TAP_SECS) {
+        swerve.zeroGyroWithAlliance();
+        lastAPressSecs = -1.0;
+      } else {
+        lastAPressSecs = now;
+      }
+    }
+
+    // Stick up/left read negative: negate so push-away is +forward/+left.
+    Translation2d shaped =
+        shapeTranslation(-driver.getLeftX(), -driver.getLeftY());
+    // Red: push-away is -X (away from the Red driver), so negate both axes.
+    boolean isRed = AllianceFlipUtil.isRedAlliance();
+    double forward = (isRed ? -shaped.getY() : shaped.getY());
+    double strafe = (isRed ? -shaped.getX() : shaped.getX());
+
+    double transScale = (slowMode ? SLOW_TRANSLATION_SCALE : 1.0) * Constants.MAX_SPEED;
+    double rotScale = (slowMode ? SLOW_ROTATION_SCALE : 1.0) * Constants.MAX_ROTATION_SPEED;
+    double vx = xLimiter.calculate(forward) * transScale;
+    double vy = yLimiter.calculate(strafe) * transScale;
+    double omega = rotLimiter.calculate(shapeRotation(-driver.getRightX())) * rotScale;
+    swerve.driveFieldOriented(new ChassisSpeeds(vx, vy, omega));
+  }
+
+  public boolean isSlowMode() {
+    return slowMode;
   }
 
   public XboxController getDriver() {

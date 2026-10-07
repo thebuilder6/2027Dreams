@@ -8,7 +8,7 @@ status: living
 
 # Known Issues & Roadmap
 
-> **Latest clean run (2026-10-07, offline): 8 test files / 19 tests, `BUILD SUCCESSFUL`.** Counts are source tests plus the measured run; historical counts below are checkpoints, not current totals.
+> **Latest clean run (2026-10-07, offline): 10 test files / 24 tests, `BUILD SUCCESSFUL`.** Counts are source tests plus the measured run; historical counts below are checkpoints, not current totals.
 
 Add entries as `- [ ] description`. Include repro or file refs so future sessions can verify.
 Status tags: `[OPEN]`, `[PARTIAL]` (partly implemented), `[STALE]` (no repro since), and `[RESOLVED]` (fixed/closed).
@@ -48,7 +48,7 @@ All game geometry stays behind `Game/GameDefinition`; 2026 hub/ramp/trench numbe
 ## D. Auto / teleop / test mode
 
 - [ ] `[OPEN]` Auto actions: `WaitAction`/`WaitForBallAction`/`WaitUntilMarkerAction`/`ShootAction`/`IntakeAction`/`AutoAimAction`/`FollowChoreoPath`/`SeriesAction`/`ParallelAction`/`ParallelRaceAction`/`BranchAction`/`LambdaAction`. 2026 ref: `Auto/Actions/*`.
-- [ ] `[OPEN]` Auto missions: `AutoMission` contract + `AutoMissionChooser` (dashboard + headless pin) + `MissionBase` thread lifecycle (`stop()` interrupts worker, `teleopInit` stops latent mission) + `Example`/`DepotShoot`/`Shooter`/`DynamicChoreo`/`AdvancedChoreo` patterns + Choreo pipeline + `AutoMissionExecutorTest`/`AutoMissionChooserTest`/`AutoEnhancementsTest`. 2026 ref: `Auto/Missions/*`, `Auto/AutoMission*.java`.
+- [ ] `[PARTIAL]` Auto missions: `AutoMission` contract + `AutoMissionChooser` (dashboard + headless pin) + `MissionBase` thread lifecycle (`stop()` interrupts worker, `teleopInit` stops latent mission) + `Example`/`DepotShoot`/`Shooter`/`DynamicChoreo`/`AdvancedChoreo` patterns + Choreo pipeline + `AutoMissionExecutorTest`/`AutoMissionChooserTest`/`AutoEnhancementsTest`. 2026 ref: `Auto/Missions/*`, `Auto/AutoMission*.java`. **2026-10-07: executor + `MissionBase` + `DoNothing`/`DriveDistance` + names-chooser exist (`DriveDistanceMissionTest`); dashboard chooser variants, Choreo, and remaining missions still open.**
 - [ ] `[OPEN]` Teleop assist: `AutonomousTeleopAgent` shared-authority (`updateSmartAssist` + `blendSpeeds` single-owner, breakout thresholds, arrival deactivation, hold-while-held anti-chatter) + settle/plant-and-fire gate + `DriverAssistTest`/`TunnelAndAssistanceTest`. 2026 ref: `Intelligence/AutonomousTeleopAgent.java`.
 - [ ] `[OPEN]` Driver feedback: `Hardware/Controller.java` haptics (`TARGET_LOCKED`/`BALL_ACQUIRED`/`HARDWARE_WARNING`/`MATCH_TIME_WARNING`) + `Subsystems/LEDs.java` Blinkin states + `AlertManager` list-caching + `TeleopTest` + `ControllerHapticsTest`. 2026 ref: `Telemetry/AlertManager.java`, `Telemetry/Alert.java`.
 - [ ] `[OPEN]` Test mode: `Test/TestMode.java` + `Test/Diagnostics.java` 15 s preflight (CAN audit, swerve pulse, steer check, intake profile, shooter ramp, vision link) + `Test/SysIdManager.java` (5 routines) + `Test/DriveCharacterization.java` delegation + `Test/ShooterTuning.java` + `Test/IntakeTesting.java` + `Test/VisionTesting.java` + `Test/README.md`. 2026 ref: `Test/*`, `SysIdManagerTest`, `DiagnosticsTest`, `ShooterTuningTest`, `IntakeTestingTest`.
