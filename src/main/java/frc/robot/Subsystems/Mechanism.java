@@ -1,6 +1,6 @@
 package frc.robot.Subsystems;
 
-import edu.wpi.first.wpilibj.RobotBase;
+import org.wpilib.framework.RobotBase;
 import frc.robot.Interfaces.Subsystem;
 import frc.robot.Subsystems.mechanism.MechanismIO;
 import frc.robot.Subsystems.mechanism.MechanismIOInputsAutoLogged;

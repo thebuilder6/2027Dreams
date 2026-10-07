@@ -7,6 +7,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import org.wpilib.hardware.bus.CANPort;
 
 /**
  * Thin REV SparkMax (NEO) wrapper so IO classes never touch the REV API
@@ -17,6 +18,10 @@ import com.revrobotics.spark.config.SparkMaxConfig;
  * sim or unit tests, so failure is the common case there. On a real robot,
  * call {@link #isConnected()} after construction to detect a missing
  * controller (and raise an {@code Alert}) instead of driving blind.
+ *
+ * <p>2027 note: REV alpha-8 takes an explicit {@link CANPort} bus
+ * (SystemCore has multiple CAN buses; {@code CAN_S0} is the default) and all
+ * status reads are {@code Signal}s — hence the small {@code read()} helper.
  */
 public class SparkMaxMotor {
   private SparkMax motor;
@@ -25,9 +30,13 @@ public class SparkMaxMotor {
   private double lastVoltage = 0.0;
 
   public SparkMaxMotor(int canId) {
+    this(CANPort.CAN_S0, canId);
+  }
+
+  public SparkMaxMotor(CANPort bus, int canId) {
     this.canId = canId;
     try {
-      motor = new SparkMax(canId, MotorType.kBrushless);
+      motor = new SparkMax(bus, canId, MotorType.kBrushless);
       encoder = motor.getEncoder();
     } catch (Exception e) {
       motor = null;
@@ -59,7 +68,7 @@ public class SparkMaxMotor {
   public void setDuty(double duty) {
     lastVoltage = duty * 12.0;
     if (motor != null) {
-      motor.set(duty);
+      motor.setThrottle(duty);
     }
   }
 
@@ -67,14 +76,23 @@ public class SparkMaxMotor {
     setVoltage(0.0);
   }
 
+  private static double read(com.revrobotics.util.Signal<Double> signal, double fallback) {
+    try {
+      Double value = signal.get();
+      return value != null ? value : fallback;
+    } catch (Exception e) {
+      return fallback;
+    }
+  }
+
   /** Rotor velocity in RPM. */
   public double getVelocityRPM() {
-    return encoder != null ? encoder.getVelocity() : 0.0;
+    return encoder != null ? read(encoder.getVelocity(), 0.0) : 0.0;
   }
 
   /** Rotor position in rotations. */
   public double getPositionRotations() {
-    return encoder != null ? encoder.getPosition() : 0.0;
+    return encoder != null ? read(encoder.getPosition(), 0.0) : 0.0;
   }
 
   public double getAppliedVoltage() {
@@ -82,11 +100,11 @@ public class SparkMaxMotor {
   }
 
   public double getOutputCurrent() {
-    return motor != null ? motor.getOutputCurrent() : 0.0;
+    return motor != null ? read(motor.getOutputCurrent(), 0.0) : 0.0;
   }
 
   public double getMotorTemperature() {
-    return motor != null ? motor.getMotorTemperature() : 0.0;
+    return motor != null ? read(motor.getMotorTemperature(), 0.0) : 0.0;
   }
 
   public boolean isConnected() {

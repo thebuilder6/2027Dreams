@@ -4,16 +4,17 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.wpilib.telemetry.Telemetry;
+import org.wpilib.tunable.Selectable;
+import org.wpilib.tunable.Tunables;
 import frc.robot.Auto.AutoMissionExecutor;
 import frc.robot.Auto.MissionBase;
 import frc.robot.Auto.Missions.DoNothingMission;
 import frc.robot.Auto.Missions.DriveDistanceMission;
 import frc.robot.Data.Constants;
+import frc.robot.Subsystems.DriveControl;
 import frc.robot.Subsystems.SubsystemManager;
-import frc.robot.Subsystems.SwerveBase;
+import frc.robot.Subsystems.UnconfiguredDrive;
 import frc.robot.Subsystems.Vision;
 import frc.robot.Telemetry.AlertManager;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -30,11 +31,11 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
  * the cached inputs object.
  */
 public class Robot extends LoggedRobot {
-  private final SwerveBase swerveBase = SwerveBase.getInstance();
+  private final DriveControl swerveBase = new UnconfiguredDrive();
   private final Vision vision = Vision.getInstance();
   private final Teleop teleop = new Teleop(swerveBase);
   private final AutoMissionExecutor autoExecutor = new AutoMissionExecutor();
-  private final SendableChooser<String> autoChooser = new SendableChooser<>();
+  private final Selectable<String> autoChooser = new Selectable<>();
   private static final String AUTO_DO_NOTHING = "Do Nothing";
   private static final String AUTO_DRIVE_FORWARD = "Drive Forward 2m";
 
@@ -63,10 +64,14 @@ public class Robot extends LoggedRobot {
     }
     Logger.start();
 
-    DriverStation.silenceJoystickConnectionWarning(true);
-    autoChooser.setDefaultOption(AUTO_DO_NOTHING, AUTO_DO_NOTHING);
-    autoChooser.addOption(AUTO_DRIVE_FORWARD, AUTO_DRIVE_FORWARD);
-    SmartDashboard.putData("Auto Mission", autoChooser);
+    // Joystick-connection warnings are automatic persistent alerts in 2027 —
+    // no silencing call remains.
+    autoChooser.addDefault(AUTO_DO_NOTHING, AUTO_DO_NOTHING);
+    autoChooser.add(AUTO_DRIVE_FORWARD, AUTO_DRIVE_FORWARD);
+    autoChooser.publishTunable(Tunables.getTable("Auto"));
+    Telemetry.log("Auto/Selected", AUTO_DO_NOTHING);
+    // No robotInit() in 2027: one-time init runs here in the constructor.
+    SubsystemManager.initializeSubsystems();
   }
 
   /** Fresh mission per selection — chooser holds names, never stateful instances. */
@@ -76,11 +81,6 @@ public class Robot extends LoggedRobot {
           swerveBase::getPose, swerveBase::driveFieldOriented, 2.0, 5.0);
     }
     return new DoNothingMission();
-  }
-
-  @Override
-  public void robotInit() {
-    SubsystemManager.initializeSubsystems();
   }
 
   @Override
@@ -119,10 +119,10 @@ public class Robot extends LoggedRobot {
   public void disabledPeriodic() {}
 
   @Override
-  public void testInit() {}
+  public void utilityInit() {}
 
   @Override
-  public void testPeriodic() {}
+  public void utilityPeriodic() {}
 
   @Override
   public void simulationInit() {}
@@ -135,8 +135,8 @@ public class Robot extends LoggedRobot {
       totalCurrentDraw += subsystem.getSimulationCurrentDraw();
     }
     double loadedVoltage =
-        edu.wpi.first.wpilibj.simulation.BatterySim.calculateDefaultBatteryLoadedVoltage(
+        org.wpilib.simulation.BatterySim.calculateDefaultBatteryLoadedVoltage(
             totalCurrentDraw);
-    edu.wpi.first.wpilibj.simulation.RoboRioSim.setVInVoltage(loadedVoltage);
+    org.wpilib.simulation.RoboRioSim.setVInVoltage(loadedVoltage);
   }
 }

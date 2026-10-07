@@ -1,7 +1,7 @@
 package frc.robot.Utils;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.Timer;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.system.Timer;
 
 /**
  * True 2D vector slew rate limiter.
@@ -26,12 +26,12 @@ public class Vector2dSlewRateLimiter {
   public Vector2dSlewRateLimiter(double rateLimit, Translation2d initialValue) {
     this.rateLimit = rateLimit;
     this.prevVal = (initialValue != null) ? initialValue : new Translation2d();
-    this.prevTime = Timer.getFPGATimestamp();
+    this.prevTime = Timer.getTimestamp();
   }
 
   /** Filters the target vector to enforce the acceleration limit. */
   public Translation2d calculate(Translation2d target) {
-    double currentTime = Timer.getFPGATimestamp();
+    double currentTime = Timer.getTimestamp();
     double dt = currentTime - prevTime;
     prevTime = currentTime;
 
@@ -61,7 +61,7 @@ public class Vector2dSlewRateLimiter {
 
   public void reset(Translation2d value) {
     this.prevVal = (value != null) ? value : new Translation2d();
-    this.prevTime = Timer.getFPGATimestamp();
+    this.prevTime = Timer.getTimestamp();
   }
 
   public void reset(double x, double y) {

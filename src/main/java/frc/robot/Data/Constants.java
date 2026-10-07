@@ -1,7 +1,7 @@
 package frc.robot.Data;
 
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.RobotBase;
+import org.wpilib.math.util.Units;
+import org.wpilib.framework.RobotBase;
 
 /**
  * Robot-wide constants. Game numbers live in {@code Game/}, never here.

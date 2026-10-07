@@ -23,7 +23,7 @@ Compare structure, not 2026 game answers. Researched 2026-10-07 against
 |---|---|---|---|---|
 | AdvantageKit + LoggedRobot reference | 6328 Mech. Advantage | IO split, replay, `Alert`/tunable discipline | Annotation + logging boilerplate | Our target end-state: `*IO` split, `LoggedRobot`, replay-first |
 | Command-based + state machines | 1678 Citrus / 254-style | Scheduler owns requirements, composable autos | Command sprawl; easy to hide game numbers in commands | Keep our `SubsystemManager` + `MissionBase`; adopt commands only via the `Subsystem` (extends WPILib `Subsystem`) seam |
-| YAGSL swerve template | YAGSL examples | JSON config speed, sim built in | Config-magic risk (offsets), version churn in betas | Keep JSON-behind-wrapper (`SwerveBase` owns the parser, nothing else touches it) |
+| YAGSL swerve template | YAGSL examples | JSON config speed, sim built in | Config-magic risk (offsets), version churn in betas — **confirmed 2026-10-07: no YAGSL 2027 exists, stack attic'd, `DriveControl` seam holds the shape** | Keep JSON-behind-wrapper (`SwerveBase` owns the parser, nothing else touches it) |
 | Dual-vision (LL MT2 + Photon coproc) | 8334 2026 | Redundancy, sim stubs | Two calibrations, NT surface area | Keep `VisionIO` stub with sim twin; defer fusion choice until the game is known |
 | Custom AI/co-pilot + score rig | 8334 2026 | Measurable policy work (cards, sweeps, attribution) | Needs determinism + attribution discipline | Re-add as `Game/` consumers only: seeded RNG, sorted iteration, per-bot attribution, JSONL rows |
 

@@ -3,8 +3,8 @@ package frc.robot.Subsystems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import edu.wpi.first.hal.HAL;
-import edu.wpi.first.math.system.plant.DCMotor;
+import org.wpilib.hardware.hal.HAL;
+import org.wpilib.math.system.DCMotor;
 import frc.robot.Subsystems.mechanism.MechanismIOInputsAutoLogged;
 import frc.robot.Subsystems.mechanism.MechanismIOSim;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,7 +16,7 @@ class MechanismTest {
   static void initHal() {
     // DCMotorSim reads battery voltage via HAL natives — without this the
     // test JVM dies in wpiHal.dll (see hs_err_pid*.log, gitignored).
-    HAL.initialize(500, 0);
+    HAL.initialize();
   }
 
   @BeforeEach

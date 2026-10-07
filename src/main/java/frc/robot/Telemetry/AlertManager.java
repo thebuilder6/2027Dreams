@@ -1,6 +1,6 @@
 package frc.robot.Telemetry;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.wpilib.telemetry.Telemetry;
 import frc.robot.Telemetry.Alert.AlertType;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -93,10 +93,10 @@ public final class AlertManager {
         || !warnings.equals(lastWarnings)
         || !infos.equals(lastInfos)
         || !banner.equals(lastBanner)) {
-      SmartDashboard.putStringArray("Alerts/Errors", errors.toArray(new String[0]));
-      SmartDashboard.putStringArray("Alerts/Warnings", warnings.toArray(new String[0]));
-      SmartDashboard.putStringArray("Alerts/Infos", infos.toArray(new String[0]));
-      SmartDashboard.putString("Driver/AlertBanner", banner);
+      Telemetry.log("Alerts/Errors", errors.toArray(new String[0]));
+      Telemetry.log("Alerts/Warnings", warnings.toArray(new String[0]));
+      Telemetry.log("Alerts/Infos", infos.toArray(new String[0]));
+      Telemetry.log("Driver/AlertBanner", banner);
       lastErrors = new ArrayList<>(errors);
       lastWarnings = new ArrayList<>(warnings);
       lastInfos = new ArrayList<>(infos);

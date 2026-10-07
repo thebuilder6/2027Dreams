@@ -10,7 +10,7 @@ status: authoritative
 
 ```
 DECISION (gamecode)          Game/GameDefinition + Auto missions + Teleop intents
-SUBSYSTEM LOGIC              Subsystems/* (drive template, mechanism template)
+SUBSYSTEM LOGIC              Subsystems/* (drive seam, mechanism template)
 HARDWARE IO                  *IO interfaces (real vs sim split lands with AdvantageKit)
 TELEMETRY                    Alert + AlertManager + wpilog (Dashboard/Tunables later)
 ```
@@ -21,10 +21,11 @@ TELEMETRY                    Alert + AlertManager + wpilog (Dashboard/Tunables l
 - `Interfaces/Subsystem.java` — project contract. Extends WPILib's command `Subsystem` so Commands v2/v3 can require our subsystems later, but adds `update/initialize/log/simulationUpdate/getSimulationCurrentDraw/isEnabled/getName`.
 - `Subsystems/template/TemplateIO.java` — copy-paste IO starting point (6328 pattern): `@AutoLog` inputs struct + outputs struct (`applyOutputs`), no-op defaults. Every mechanism IO follows it: `updateInputs` → `processInputs` → logic reads cached inputs.
 - `Subsystems/SubsystemManager.java` — static registry, snapshot init, throttled fault isolation.
+- `Subsystems/DriveControl.java` — minimal drive contract (`Teleop` + missions program to it). `UnconfiguredDrive` is the explicit pending state; the YAGSL `SwerveBase` returns from `attic/yagsl-drive` when YAGSL-2027 lands.
 - `Data/Constants.java` — mode (`REAL/SIM`), drive limits, slew rates. No game numbers.
 - `Hardware/PortMap.java` — single owner of CAN/DIO/USB IDs. Empty/reserved until chassis is known.
 - `Navigation/FieldMap.java` — field length/width + zone helpers, fed by the active `GameDefinition`. No hardcoded 2026 hub/ramp/trench geometry.
-- `Utils/AllianceFlipUtil.java` — Blue-origin mirroring. Only place that reads `DriverStation.getAlliance()` for geometry.
+- `Utils/AllianceFlipUtil.java` — Blue-origin mirroring. Only place that reads the alliance (`MatchState.getAlliance()`) for geometry.
 - `Game/` — `GameDefinition` interface + `UnknownGame` placeholder. Kickoff replaces the placeholder; generic code never changes.
 - `Auto/` — `MissionBase` + `AutoMissionExecutor` + `DoNothingMission`. Thread model mirrors 2026 (start/stop/reset, `disabledInit` always stops). Composable steps live in `Auto/Actions/` (`Action` iface, `WaitAction`, `SeriesAction`) and adapt via `Auto/Missions/ActionMission`.
 - `Telemetry/Alert.java` — rate-limited driver alerts (group/text/type, self-registering). `Telemetry/AlertManager.java` publishes the banner + severity tables on change from `Robot.robotPeriodic`. No `System.out` in robot code.

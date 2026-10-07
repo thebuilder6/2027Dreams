@@ -12,22 +12,22 @@ Gradle project lives at the repo root — run all Gradle commands from here.
 
 ## Build / run (Windows PowerShell, repo root)
 
-Must use the WPILib 2026 JDK until the 2027 beta is installed:
+Must use the WPILib 2027 alpha-7 JDK (branch `wpilib-2027-alpha7`):
 
 ```powershell
-$env:JAVA_HOME = "C:\Users\Public\wpilib\2026\jdk"
+$env:JAVA_HOME = "C:\Users\Public\wpilib\2027_alpha7\jdk"
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
-.\gradlew.bat compileJava --offline   # fast compile
-.\gradlew.bat test --offline          # JUnit 5 suite (13 files / 33 tests as of 2026-10-07)
-.\gradlew.bat simulateJava            # desktop SimGUI
-.\gradlew.bat deploy                  # deploy to controller (same JAVA_HOME)
+.\gradlew.bat compileJava            # fast compile (first run needs network for vendor artifacts)
+.\gradlew.bat test --offline          # JUnit 5 suite (11 files / 27 tests as of 2026-10-07)
+.\gradlew.bat run                     # desktop SimGUI (alpha-7 sim runs via the application plugin)
+.\gradlew.bat deploy                  # deploy to SystemCore (same JAVA_HOME)
 ```
 
-- Always use the wrapper (`gradlew.bat`), never system `gradle`.
-- `--offline` uses `C:\Users\Public\wpilib\2026\maven` + the shared Gradle cache.
-- GradleRIO `2026.2.1`, Java 17, AdvantageKit `26.0.2`. When the 2027 beta lands, see `docs/2027_MIGRATION.md` — expect Java 25, `edu.wpi.first` → `org.wpilib`, Commands v3.
+- Always use the wrapper (`gradlew.bat`), never system `gradle`. Wrapper pins Gradle 9.4.1.
+- `--offline` works after one online build populates the vendor cache (`C:\Users\Public\wpilib\2027_alpha7\maven` + Gradle cache).
+- GradleRIO `2027.0.0-alpha-7`, Java 25, AdvantageKit `27.0.0-alpha-6`, REVLib `2027.0.0-alpha-8`. No YAGSL 2027 exists — drive lives in `attic/yagsl-drive` until one lands (see `attic/yagsl-drive/README.md`).
 - Single test: `.\gradlew.bat test --offline --tests "frc.robot.Utils.AllianceFlipUtilTest"`.
-- Stale `java` processes lock `build/jni` DLLs and `build/test-results` binaries: if the build complains about undeletable dirs, find the PID that actually holds the file and kill **that PID only**, then re-run. **Never `taskkill /IM java.exe` and never `gradlew --stop`** — on a shared tree those kill other agents' live test runs and sims, which is the failure the `tools/lock` protocol exists to prevent (see §Resource coordination).
+- Stale `java` processes lock `build/jni` DLLs and `build/test-results` binaries: if the build complains about undeletable dirs, find the PID that actually holds the file and kill **that PID only**, then re-run. **Never `taskkill /IM java.exe` and never `gradlew --stop`** — on a shared tree those kill other agents' live test runs and sims, which is the failure the `tools/lock` protocol exists to prevent (see §Resource coordination). Daemon-locked runs can also produce a phantom one-off test failure — clean re-run (`--rerun-tasks`) is the tiebreaker before chasing a regression.
 
 ## Resource coordination
 
@@ -36,8 +36,8 @@ Multiple agents share **one** working tree, so `build/`, `.gradle/`, and a fixed
 | Resource | Hold it while running | Conflicts with |
 |---|---|---|
 | `gradle-build` | `compileJava`, `test` | itself |
-| `sim-gui` | `simulateJava` / SimGUI | itself |
-| `deploy` | `gradlew deploy` | itself |
+| `sim-gui` | `gradlew run` / SimGUI | itself |
+| `deploy` | `gradlew deploy` (SystemCore) | itself |
 
 ```powershell
 powershell -File tools/lock/status.ps1                          # who holds what
@@ -47,7 +47,8 @@ powershell -File tools/lock/release.ps1 -Resource gradle-build  # in a finally
 
 - **Wait, then fail loudly.** A blocked acquire prints progress every 15 s and exits `3` naming the holder, its PID, its age and its stated reason. That is a *wait*, not a corruption — do not clear the way by killing anything. Re-run later, or work a different resource.
 - **Never kill another agent's process to make room.** Not `taskkill /IM java.exe`, not `gradlew --stop`, not a wildcard `Stop-Process` over `java.exe`. Kill a specific PID you own, or use the lock.
-- A lock held by a dead process is reclaimed automatically and loudly (`[lock] STALE`).
+- **Fan-out:** an orchestrator takes `gradle-build` once for the whole batch; workers run under it rather than each contending for it. Concurrent `gradlew` runs against one tree are not a tuning problem, they invalidate the result.
+- A lock held by a dead process is reclaimed automatically and loudly (`[lock] STALE`). `status.ps1` also reports a running Elastic/AdvantageScope/SimGUI, which is legal for a GUI sim but will contaminate a rig sweep when it lands (`KNOWN_ISSUES.md` §F).
 - The lock is **advisory**: it protects agent-against-agent. A human in a terminal or a teammate in VS Code bypasses it, so a timeout is a reason to wait, never a reason to assume the path is clear.
 - The `sweep` resource arrives with the score rig; until then the table holds three.
 
@@ -64,9 +65,10 @@ Reasoning, the conflict matrix, and recovery recipes: `docs/COORDINATION.md`.
 - `Interfaces/Subsystem.java` is the project contract (`update/initialize/log/isEnabled/getName`, plus `simulationUpdate/getSimulationCurrentDraw`). Do not convert to bare WPILib `Subsystem`/`Command` patterns without a design note in `docs/ARCHITECTURE.md`.
 - Subsystems self-register with `Subsystems/SubsystemManager.java`. One throwing subsystem is isolated + throttled, never fatal.
 - IO follows `Subsystems/template/TemplateIO.java`: `@AutoLog` inputs struct + outputs struct (`applyOutputs`), no-op defaults. Per cycle: `updateInputs` → `processInputs` → logic reads cached inputs.
-- Coordinates are Blue-origin only. All field points defined for Blue; mirror with `Utils/AllianceFlipUtil.java`. Never hardcode Red coordinates. Field dimensions come from `Navigation/FieldMap.java`, which reads the active `Game/GameDefinition.java` (currently `UnknownGame` placeholder until kickoff).
+- Coordinates are Blue-origin only. All field points defined for Blue; mirror with `Utils/AllianceFlipUtil.java` (reads `MatchState.getAlliance()` — `DriverStation` split in 2027). Never hardcode Red coordinates. Field dimensions come from `Navigation/FieldMap.java`, which reads the active `Game/GameDefinition.java` (currently `UnknownGame` placeholder until kickoff).
 - Game-specific numbers live in `Game/` only. Generic code takes a `GameDefinition` — it never hardcodes field targets.
 - `Constants.getMode()` returns `REAL`/`SIM`/`REPLAY` (replay via `-Dfrc.replay=true`). `Constants.CheckPullRequest` fails CI when `TUNING_MODE` is left on.
+- 2027 framework notes: no `robotInit()` (init in the constructor), Test mode is `utilityInit`/`utilityPeriodic`, `SmartDashboard`/`SendableChooser` are `Telemetry.log`/`Selectable`, constants are `ALL_CAPS` (`Alliance.BLUE`), clocks are `Timer.getTimestamp()` (no FPGA clock), `ChassisSpeeds` is `ChassisVelocities` (`vx/vy/omega`), REV reads are `Signal`s (`.get()`), SparkMax takes a `CANPort` bus. Removed APIs fail loudly at compile — check the beta javadoc, don't shim them back.
 
 ## Conventions that differ from defaults
 
@@ -77,17 +79,17 @@ Reasoning, the conflict matrix, and recovery recipes: `docs/COORDINATION.md`.
 
 ## Testing / sim notes
 
-- Tests live in `src/test/java/frc/robot/` mirroring package names. Current suite: 13 files / 33 tests (see `docs/CHANGELOG.md` for the count stamp).
+- Tests live in `src/test/java/frc/robot/` mirroring package names. Current suite: 11 files / 27 tests (see `docs/CHANGELOG.md` for the count stamp).
 - `test { useJUnitPlatform() }`; prefer `--tests` for single-file runs.
-- Tests touching sim physics, `Timer`, or HAL natives must call `HAL.initialize(500, 0)` in setup — without it the test JVM dies inside `wpiHal.dll` (see `hs_err_pid*.log`, gitignored). 2026 convention, kept here.
+- Tests touching sim physics, `Timer`, or HAL natives must call `HAL.initialize()` in setup (no-arg in 2027) — without it the test JVM dies inside native code (see `hs_err_pid*.log`, gitignored). 2026 convention, kept here.
 - The fault-isolation test intentionally triggers a `SubsystemManager isolated exploding.update` warning on stderr — expected, not a failure. PowerShell surfaces it as `NativeCommandError` with exit 1 even though the build reports `BUILD SUCCESSFUL`; trust the build result.
 - Docs: `ARCHITECTURE.md` (contracts), `DESIGN_PHILOSOPHY.md` (principles), `2027_MIGRATION.md` (beta checklist), `TEAM_COMPARISON.md` (6328 findings). Trust `build.gradle`/code over prose when they conflict.
 - Docs index: `docs/INDEX.md` is the authoritative map.
 
 ## Docs Contract (strict — all agents)
 
-1. **Reference before acting:** read `docs/INDEX.md` + the one topic guide for the task + root `KNOWN_ISSUES.md` before any code change.
-2. **Update in the same change:** any behavior-affecting edit (runtime rules, NT keys, controls, build commands, test counts) must also touch docs in the same change: bump `last_verified` frontmatter and add a `docs/CHANGELOG.md` bullet with test evidence.
-3. **No duplication:** link to the single owning guide; don't paste the same paragraph into two files. New guides copy `docs/_TEMPLATE.md` **and are not finished until they have a row in the `docs/INDEX.md` durable-guides table**.
-4. **Verify stamp:** `last_verified` = date code + docs were confirmed together (green build/test). Docs older than 30 days are `status: needs-review`. If the suite is red, say so in the verification section rather than leaving a stale green line.
-5. **Do not let a test rewrite stand in for a fix.** When a new test fails on arrival, check the *premise* first. Cite tests as evidence only after re-running them on the current binary.
+1. **Reference before acting:** read `docs/INDEX.md` + the one topic guide for the task + root `KNOWN_ISSUES.md` before any code change. Check `docs/RESOURCES.md` before web search. Never cite `.agents/teamwork` scratch, `reports/`, or `build/` as spec.
+2. **Update in the same change:** any behavior-affecting edit (runtime rules, NT keys, controls, scoring, sim physics, build commands, test counts) must also touch docs in the same change: bump `last_verified` frontmatter, add a `docs/CHANGELOG.md` bullet with test evidence, and update `KNOWN_ISSUES.md` status tags (`[OPEN]`/`[PARTIAL]`/`[RESOLVED]`).
+3. **No duplication:** link to the single owning guide; don't paste the same paragraph into two files. New guides copy `docs/_TEMPLATE.md` (frontmatter: title, audience, owner, last_verified, status; body sections: Scope, Content, Verification, Related) **and are not finished until they have a row in the `docs/INDEX.md` durable-guides table** — a guide linked from code but missing from that table dangles until a later review catches it.
+4. **Verify stamp:** `last_verified` = date code + docs were confirmed together (green build/test). Docs older than 30 days are `status: needs-review`. If the test suite is red, say so in the `## Verification` section rather than leaving a stale "N/N green" — a "green" line that predates a regression is worse than a red one, because it is trusted.
+5. **Do not let a test rewrite stand in for a fix.** When a new test fails on arrival, check the *premise* first. Rewriting a test to pass explicit state can silently delete the only evidence for a real defect. Cite tests as evidence only after re-running them on the current binary.

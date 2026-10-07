@@ -1,6 +1,6 @@
 package frc.robot.Auto;
 
-import edu.wpi.first.wpilibj.Timer;
+import org.wpilib.system.Timer;
 
 /**
  * Runs one {@link MissionBase} on its own thread at 50 Hz. Single-threaded by
@@ -34,7 +34,7 @@ public final class AutoMissionExecutor {
                   break;
                 }
                 try {
-                  current.run(Timer.getFPGATimestamp());
+                  current.run(Timer.getTimestamp());
                 } catch (Exception e) {
                   // Silent by design: this thread has no HAL-safe way to report
                   // in unit tests. Reproduce in a test to see the stack trace.

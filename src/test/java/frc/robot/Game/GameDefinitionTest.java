@@ -3,7 +3,7 @@ package frc.robot.Game;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation2d;
 import frc.robot.Navigation.FieldMap;
 import org.junit.jupiter.api.Test;
 

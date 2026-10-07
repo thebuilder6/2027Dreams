@@ -1,6 +1,6 @@
 package frc.robot.Telemetry;
 
-import edu.wpi.first.wpilibj.Timer;
+import org.wpilib.system.Timer;
 import org.littletonrobotics.junction.Logger;
 
 /**

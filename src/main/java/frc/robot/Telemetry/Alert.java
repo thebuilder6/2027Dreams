@@ -1,15 +1,12 @@
 package frc.robot.Telemetry;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.wpilib.driverstation.DriverStationErrors;
+import org.wpilib.telemetry.Telemetry;
 
 /**
  * One persistent driver alert. Self-registers with {@link AlertManager} on
  * construction; the manager owns dashboard publishing, this class owns the
- * rate-limited console report so a fault can't spam the DS log.
- *
- * <p>Migrates to the 2027 {@code Telemetry} alerts API during the beta import —
- * call sites stay the same.
+ * rate-limited DS-log report so a fault can't spam the log.
  */
 public class Alert {
   public enum AlertType {
@@ -39,15 +36,16 @@ public class Alert {
 
   public void set(boolean active) {
     this.active = active;
-    SmartDashboard.putBoolean("Alert/" + group + "/" + text, active);
+    Telemetry.log("Alert/" + group + "/" + text, active);
     if (active) {
       long now = System.nanoTime();
       if (now - lastReportNanos > REPORT_THROTTLE_NANOS) {
         lastReportNanos = now;
         if (type == AlertType.ERROR) {
-          DriverStation.reportError("Alert ERROR [" + group + "]: " + text, false);
+          DriverStationErrors.reportError("Alert ERROR [" + group + "]: " + text, false);
         } else {
-          DriverStation.reportWarning("Alert " + type + " [" + group + "]: " + text, false);
+          DriverStationErrors.reportWarning(
+              "Alert " + type + " [" + group + "]: " + text, false);
         }
       }
     }

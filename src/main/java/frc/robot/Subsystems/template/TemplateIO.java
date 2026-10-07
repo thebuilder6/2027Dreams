@@ -1,6 +1,6 @@
 package frc.robot.Subsystems.template;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
 
 /**
@@ -38,7 +38,7 @@ public interface TemplateIO {
     public TemplateIOOutputMode mode = TemplateIOOutputMode.COAST;
     public double velocityRadPerSec = 0.0;
     public double feedforwardVolts = 0.0;
-    public Rotation2d targetRotation = Rotation2d.kZero;
+    public Rotation2d targetRotation = Rotation2d.ZERO;
   }
 
   default void updateInputs(TemplateIOInputs inputs) {}

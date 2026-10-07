@@ -3,8 +3,8 @@ package frc.robot.Auto.Missions;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -12,11 +12,11 @@ import org.junit.jupiter.api.Test;
 class DriveDistanceMissionTest {
   @Test
   void completesAfterTravelingDistance() {
-    List<ChassisSpeeds> commands = new ArrayList<>();
+    List<ChassisVelocities> commands = new ArrayList<>();
     double[] x = {0.0};
     DriveDistanceMission mission =
         new DriveDistanceMission(
-            () -> new Pose2d(x[0], 0.0, new edu.wpi.first.math.geometry.Rotation2d()),
+            () -> new Pose2d(x[0], 0.0, new org.wpilib.math.geometry.Rotation2d()),
             commands::add,
             2.0,
             5.0,
@@ -26,7 +26,7 @@ class DriveDistanceMissionTest {
     for (int i = 0; i < 200 && !mission.isDone(); i++) {
       mission.run(i * 0.02);
       if (!commands.isEmpty()) {
-        x[0] += commands.get(commands.size() - 1).vxMetersPerSecond * 0.02;
+        x[0] += commands.get(commands.size() - 1).vx * 0.02;
       }
     }
     assertTrue(mission.isDone());

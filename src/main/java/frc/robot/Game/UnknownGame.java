@@ -1,6 +1,6 @@
 package frc.robot.Game;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation2d;
 
 /**
  * Placeholder until kickoff. Carries standard FRC field dimensions so generic

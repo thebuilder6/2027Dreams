@@ -60,7 +60,15 @@ this module prevents.
   `taskkill /IM java.exe`, never `gradlew --stop`.
 - A test failure appears only in the full suite but not with `--tests` on the
   same file → suspect a concurrent Gradle run on this tree; check `status.ps1`
-  and re-run under the lock before chasing a regression.
+  and re-run under the lock before chasing a regression. A daemon-locked
+  one-off failure clears on a clean (`--rerun-tasks`) re-run — that re-run is
+  the tiebreaker.
+- Fan-out: an orchestrator holds `gradle-build` once for the whole batch;
+  workers run under it. Concurrent `gradlew` runs are not a tuning problem,
+  they invalidate the result.
+- `status.ps1` also reports a running Elastic/AdvantageScope/SimGUI. Legal for
+  a GUI sim, but it will contaminate a rig sweep when `sweep` lands — check
+  before sweeping.
 - A lock you don't hold blocks you → wait or work a different resource. Do not
   delete someone else's `.locks/*.lock` file; `Exit-Lock` already refuses to
   release locks it doesn't own.

@@ -1,7 +1,7 @@
 package frc.robot.Hardware;
 
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.XboxController;
+import org.wpilib.driverstation.GenericHID.RumbleType;
+import org.wpilib.driverstation.XboxController;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,23 +48,20 @@ public class Controller extends XboxController {
 
   @Override
   public void setRumble(RumbleType type, double value) {
-    if (type == RumbleType.kLeftRumble) {
+    // 2027 has no both-sides constant: emulate by driving both grips.
+    if (type == RumbleType.LEFT_RUMBLE) {
       if (Math.abs(value - lastLeftRumble) > 0.01) {
         lastLeftRumble = value;
         super.setRumble(type, value);
       }
-    } else if (type == RumbleType.kRightRumble) {
+    } else if (type == RumbleType.RIGHT_RUMBLE) {
       if (Math.abs(value - lastRightRumble) > 0.01) {
         lastRightRumble = value;
         super.setRumble(type, value);
       }
     } else {
-      if (Math.abs(value - lastLeftRumble) > 0.01
-          || Math.abs(value - lastRightRumble) > 0.01) {
-        lastLeftRumble = value;
-        lastRightRumble = value;
-        super.setRumble(type, value);
-      }
+      setRumble(RumbleType.LEFT_RUMBLE, value);
+      setRumble(RumbleType.RIGHT_RUMBLE, value);
     }
   }
 
@@ -78,10 +75,10 @@ public class Controller extends XboxController {
    */
   public boolean getButtonPressedOnce(int button) {
     boolean latched = debounceButtons.getOrDefault(button, false);
-    if (getRawButton(button) && latched) {
+    if (getHID().getRawButton(button) && latched) {
       debounceButtons.put(button, false);
       return false;
-    } else if (getRawButtonPressed(button)) {
+    } else if (getHID().getRawButtonPressed(button)) {
       debounceButtons.put(button, true);
       return true;
     }

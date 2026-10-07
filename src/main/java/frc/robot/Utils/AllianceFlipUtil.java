@@ -1,23 +1,24 @@
 package frc.robot.Utils;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.MatchState;
 import frc.robot.Navigation.FieldMap;
 
 /**
  * Blue-origin coordinate standard. Define every field point once for Blue;
- * mirror for Red. Only place that reads {@code DriverStation.getAlliance()}
- * for geometry — everything else takes an explicit {@code isRed} flag.
+ * mirror for Red. Only place that reads the alliance (via
+ * {@code MatchState.getAlliance()}) for geometry — everything else takes an
+ * explicit {@code isRed} flag.
  */
 public final class AllianceFlipUtil {
   private AllianceFlipUtil() {}
 
   public static boolean isRedAlliance() {
-    return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+    return MatchState.getAlliance().orElse(Alliance.BLUE) == Alliance.RED;
   }
 
   public static Translation2d apply(Translation2d translation, boolean isRed) {

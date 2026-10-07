@@ -1,6 +1,6 @@
 package frc.robot.Subsystems;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import org.wpilib.driverstation.DriverStationErrors;
 import frc.robot.Interfaces.Subsystem;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,7 +69,7 @@ public final class SubsystemManager {
       Long last = lastReportNanos.get(name);
       if (last == null || now - last > REPORT_THROTTLE_NANOS) {
         lastReportNanos.put(name, now);
-        DriverStation.reportWarning(
+        DriverStationErrors.reportWarning(
             "SubsystemManager isolated "
                 + name
                 + "."

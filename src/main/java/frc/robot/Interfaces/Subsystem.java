@@ -1,13 +1,13 @@
 package frc.robot.Interfaces;
 
-import edu.wpi.first.wpilibj2.command.Command;
+import org.wpilib.command2.Command;
 
 /**
  * Project subsystem contract. Extends WPILib's command {@code Subsystem} so the
  * scheduler can require our subsystems later (Commands v2 today, v3 after the
  * 2027 migration), but adds the lifecycle 2026Dreams relies on.
  */
-public interface Subsystem extends edu.wpi.first.wpilibj2.command.Subsystem {
+public interface Subsystem extends org.wpilib.command2.Subsystem {
   /** Called every 20 ms from {@code Robot.robotPeriodic}. */
   void update();
 
@@ -33,6 +33,6 @@ public interface Subsystem extends edu.wpi.first.wpilibj2.command.Subsystem {
 
   @Override
   default Command idle() {
-    return edu.wpi.first.wpilibj2.command.Subsystem.super.idle();
+    return org.wpilib.command2.Subsystem.super.idle();
   }
 }

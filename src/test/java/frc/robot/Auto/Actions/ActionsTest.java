@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import edu.wpi.first.hal.HAL;
+import org.wpilib.hardware.hal.HAL;
 import frc.robot.Auto.Missions.ActionMission;
 import frc.robot.Interfaces.Action;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class ActionsTest {
   @BeforeAll
   static void initHal() {
-    HAL.initialize(500, 0);
+    HAL.initialize();
   }
 
   private static final class InstantAction implements Action {

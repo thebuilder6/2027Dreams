@@ -1,17 +1,28 @@
 package frc.robot.Subsystems.mechanism;
 
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import org.wpilib.math.system.DCMotor;
 
 /**
- * Desktop-sim MechanismIO: WPILib {@code DCMotorSim} (NEO, configurable
- * gearing/inertia). No vendor physics needed — steps at the 20 ms loop.
+ * Desktop-sim MechanismIO: analytic first-order DC-motor model (WPILib
+ * alpha-7 removed the {@code LinearSystemId} plant factories, so the model
+ * below is written out explicitly).
+ *
+ * <p>Discrete dynamics, Euler at the 20 ms loop:
+ * {@code ω += (A·ω + B·V)·dt}, with {@code A = −G²·Kt/(Kv·R·J)} and
+ * {@code B = G·Kt/(R·J)} — the same model {@code LinearSystemId} generated in
+ * 2026. Current draw comes from {@code DCMotor.getCurrent(ω, V)}.
  */
 public class MechanismIOSim implements MechanismIO {
   public static final double LOOP_PERIOD_SECS = 0.02;
 
-  private final DCMotorSim sim;
+  private final DCMotor gearbox;
+  private final double gearing;
+  private final double momentOfInertiaKgM2;
+  private final double plantA;
+  private final double plantB;
+
+  private double positionRads = 0.0;
+  private double velocityRadsPerSec = 0.0;
   private double appliedVolts = 0.0;
 
   public MechanismIOSim() {
@@ -19,20 +30,26 @@ public class MechanismIOSim implements MechanismIO {
   }
 
   public MechanismIOSim(DCMotor gearbox, double gearing, double momentOfInertiaKgM2) {
-    sim =
-        new DCMotorSim(
-            LinearSystemId.createDCMotorSystem(gearbox, momentOfInertiaKgM2, gearing), gearbox);
+    this.gearbox = gearbox;
+    this.gearing = gearing;
+    this.momentOfInertiaKgM2 = momentOfInertiaKgM2;
+    double kt = gearbox.Kt;
+    double kv = gearbox.Kv;
+    double r = gearbox.R;
+    this.plantA =
+        -gearing * gearing * kt / (kv * r * momentOfInertiaKgM2);
+    this.plantB = gearing * kt / (r * momentOfInertiaKgM2);
   }
 
   @Override
   public void updateInputs(MechanismIOInputs inputs) {
-    sim.setInputVoltage(appliedVolts);
-    sim.update(LOOP_PERIOD_SECS);
+    velocityRadsPerSec += (plantA * velocityRadsPerSec + plantB * appliedVolts) * LOOP_PERIOD_SECS;
+    positionRads += velocityRadsPerSec * LOOP_PERIOD_SECS;
     inputs.connected = true;
-    inputs.positionRads = sim.getAngularPositionRad();
-    inputs.velocityRadsPerSec = sim.getAngularVelocityRadPerSec();
+    inputs.positionRads = positionRads;
+    inputs.velocityRadsPerSec = velocityRadsPerSec;
     inputs.appliedVolts = appliedVolts;
-    inputs.currentAmps = sim.getCurrentDrawAmps();
+    inputs.currentAmps = gearbox.getCurrent(velocityRadsPerSec, appliedVolts);
     inputs.tempCelsius = 0.0;
   }
 

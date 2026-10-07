@@ -1,7 +1,7 @@
 package frc.robot.Auto.Missions;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
 import frc.robot.Auto.MissionBase;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -13,7 +13,7 @@ import java.util.function.Supplier;
  */
 public class DriveDistanceMission extends MissionBase {
   private final Supplier<Pose2d> poseSupplier;
-  private final Consumer<ChassisSpeeds> driveConsumer;
+  private final Consumer<ChassisVelocities> driveConsumer;
   private final double distanceMeters;
   private final double timeoutSecs;
   private final double driveSpeedMps;
@@ -24,7 +24,7 @@ public class DriveDistanceMission extends MissionBase {
 
   public DriveDistanceMission(
       Supplier<Pose2d> poseSupplier,
-      Consumer<ChassisSpeeds> driveConsumer,
+      Consumer<ChassisVelocities> driveConsumer,
       double distanceMeters,
       double timeoutSecs) {
     this(poseSupplier, driveConsumer, distanceMeters, timeoutSecs, 1.0);
@@ -32,7 +32,7 @@ public class DriveDistanceMission extends MissionBase {
 
   public DriveDistanceMission(
       Supplier<Pose2d> poseSupplier,
-      Consumer<ChassisSpeeds> driveConsumer,
+      Consumer<ChassisVelocities> driveConsumer,
       double distanceMeters,
       double timeoutSecs,
       double driveSpeedMps) {
@@ -59,15 +59,15 @@ public class DriveDistanceMission extends MissionBase {
     double elapsed = timestampSec - startTimeSecs;
     double traveled = poseSupplier.get().getTranslation().getDistance(startPose.getTranslation());
     if (traveled >= distanceMeters || elapsed >= timeoutSecs) {
-      driveConsumer.accept(new ChassisSpeeds());
+      driveConsumer.accept(new ChassisVelocities());
       setDone(true);
       return;
     }
-    driveConsumer.accept(new ChassisSpeeds(driveSpeedMps, 0.0, 0.0));
+    driveConsumer.accept(new ChassisVelocities(driveSpeedMps, 0.0, 0.0));
   }
 
   @Override
   public void end() {
-    driveConsumer.accept(new ChassisSpeeds());
+    driveConsumer.accept(new ChassisVelocities());
   }
 }

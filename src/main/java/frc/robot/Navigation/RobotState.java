@@ -1,6 +1,6 @@
 package frc.robot.Navigation;
 
-import edu.wpi.first.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose2d;
 import org.littletonrobotics.junction.Logger;
 
 /**

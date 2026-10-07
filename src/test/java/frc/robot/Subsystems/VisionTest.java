@@ -3,10 +3,10 @@ package frc.robot.Subsystems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import edu.wpi.first.hal.HAL;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.Timer;
+import org.wpilib.hardware.hal.HAL;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.system.Timer;
 import frc.robot.Subsystems.vision.VisionIO.VisionIOInputs;
 import frc.robot.Subsystems.vision.VisionIOSim;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class VisionTest {
   @BeforeAll
   static void initHal() {
-    HAL.initialize(500, 0);
+    HAL.initialize();
   }
 
   @BeforeEach

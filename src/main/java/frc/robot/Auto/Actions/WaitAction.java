@@ -1,6 +1,6 @@
 package frc.robot.Auto.Actions;
 
-import edu.wpi.first.wpilibj.Timer;
+import org.wpilib.system.Timer;
 import frc.robot.Interfaces.Action;
 
 /** Waits a fixed duration, then finishes. */

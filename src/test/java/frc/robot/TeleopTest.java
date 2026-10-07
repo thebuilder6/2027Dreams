@@ -3,7 +3,7 @@ package frc.robot;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation2d;
 import org.junit.jupiter.api.Test;
 
 class TeleopTest {
@@ -22,7 +22,7 @@ class TeleopTest {
     assertEquals(1.0, full.getNorm(), 1e-9);
     // Corner: square deadband would clip, circular preserves direction.
     Translation2d corner = Teleop.shapeTranslation(0.7, 0.7);
-    assertEquals(Math.PI / 4, corner.getAngle().getRadians(), 1e-9);
+    assertEquals(Math.PI / 4, corner.getAngle().orElseThrow().getRadians(), 1e-9);
   }
 
   @Test
