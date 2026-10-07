@@ -8,6 +8,12 @@ status: living
 
 # Changelog
 
+- 2026-10-07: Commands-v3 spike verdict — attempted drive-forward-2m as a v3 coroutine (`noRequirements` + `waitUntil`, isolated scheduler); GradleRIO alpha-7 forbids v2+v3 vendordeps in one project and our `Subsystem` extends v2, so the spike cannot compile in-tree without the rewrite it was meant to evaluate. Spike files reverted (tree green), verdict in `docs/V3_SPIKE.md`: v3 optional, adoption deferred to post-kickoff. `KNOWN_ISSUES.md` item 6 → resolved.
+
+- 2026-10-07: Temporary vendor-free swerve live — `Subsystems/swerve/` (`SwerveModuleIO`/`Sim`/`SparkMax`, `SwerveGyroIO`/`Sim`) + `Subsystems/SwerveDrive.java` (odometry, kV-FF + steer-P, ctor-injected) wired in `Robot` (sim twins / SparkMax + stub gyro); `UnconfiguredDrive` deleted; `SwerveConstants` placeholders + steer CAN IDs in `PortMap`; `SWERVE_SETUP.md` rewritten, `ARCHITECTURE.md`/`2027_MIGRATION.md`/`KNOWN_ISSUES.md` §Top-1/5 + §J statuses updated. Two real finds: alpha-7 kinematics are immutable (`desaturate` returns new array) and explicit-Euler explodes on the stiff steer plant → `MechanismIOSim` now exact-step. `test --offline --rerun-tasks` 13 files / 32 tests green.
+
+- 2026-10-07: Drive decision — YAGSL is the target (2026.8.18 beta assessed: right direction, but 2026.2.1/roboRIO-only, unusable on alpha-7); vendor-free approved as temporary scaffold behind `DriveControl`. Recorded in `KNOWN_ISSUES.md` §Top-1/5 + attic return path with 8.18 schema warning. `test --offline --rerun-tasks` 11 files / 27 green.
+
 - 2026-10-07: Innovation-landscape review — evaluated the external 2026–2027 report against alpha-7 build evidence: v3 optional (v2 ships, timed template iterative, our stack survived), YAGSL-on-SystemCore claims premature (no 2027 release), telemetry migration already done, BLine/YAMS/Quarky/NPU-pricing unverified rumors with gates. Folded into `docs/TEAM_COMPARISON.md` (new review section) + `KNOWN_ISSUES.md` items 4–6 (import partial, drive-unblock and v3-spike open). Docs-only.
 
 - 2026-10-07: Architect review queued — new `KNOWN_ISSUES.md` §J (11 items: initialize isolation bug, IO ctor-injection, FlipUtil/FieldMap edge, attic alliance reads, Teleop injection, dead weight, renames, duplication magnets, UnconfiguredDrive silence, BatterySim import, deferred splits). Each re-verified live; `DriverStationErrors` break dropped (alpha-7 migration imports it). `test --offline --rerun-tasks` 11 files / 27 green (BUILD SUCCESSFUL; stack trace in output is worker noise on the intentional fault-isolation path).

@@ -18,7 +18,7 @@ Must use the WPILib 2027 alpha-7 JDK (branch `wpilib-2027-alpha7`):
 $env:JAVA_HOME = "C:\Users\Public\wpilib\2027_alpha7\jdk"
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 .\gradlew.bat compileJava            # fast compile (first run needs network for vendor artifacts)
-.\gradlew.bat test --offline          # JUnit 5 suite (11 files / 27 tests as of 2026-10-07)
+.\gradlew.bat test --offline          # JUnit 5 suite (13 files / 32 tests as of 2026-10-07)
 .\gradlew.bat run                     # desktop SimGUI (alpha-7 sim runs via the application plugin)
 .\gradlew.bat deploy                  # deploy to SystemCore (same JAVA_HOME)
 ```
@@ -79,7 +79,7 @@ Reasoning, the conflict matrix, and recovery recipes: `docs/COORDINATION.md`.
 
 ## Testing / sim notes
 
-- Tests live in `src/test/java/frc/robot/` mirroring package names. Current suite: 11 files / 27 tests (see `docs/CHANGELOG.md` for the count stamp).
+- Tests live in `src/test/java/frc/robot/` mirroring package names. Current suite: 13 files / 32 tests (see `docs/CHANGELOG.md` for the count stamp).
 - `test { useJUnitPlatform() }`; prefer `--tests` for single-file runs.
 - Tests touching sim physics, `Timer`, or HAL natives must call `HAL.initialize()` in setup (no-arg in 2027) — without it the test JVM dies inside native code (see `hs_err_pid*.log`, gitignored). 2026 convention, kept here.
 - The fault-isolation test intentionally triggers a `SubsystemManager isolated exploding.update` warning on stderr — expected, not a failure. PowerShell surfaces it as `NativeCommandError` with exit 1 even though the build reports `BUILD SUCCESSFUL`; trust the build result.

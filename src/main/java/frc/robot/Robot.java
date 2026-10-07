@@ -12,9 +12,16 @@ import frc.robot.Auto.MissionBase;
 import frc.robot.Auto.Missions.DoNothingMission;
 import frc.robot.Auto.Missions.DriveDistanceMission;
 import frc.robot.Data.Constants;
+import frc.robot.Data.Constants.SwerveConstants;
+import frc.robot.Hardware.PortMap;
 import frc.robot.Subsystems.DriveControl;
 import frc.robot.Subsystems.SubsystemManager;
-import frc.robot.Subsystems.UnconfiguredDrive;
+import frc.robot.Subsystems.SwerveDrive;
+import frc.robot.Subsystems.swerve.SwerveGyroIO;
+import frc.robot.Subsystems.swerve.SwerveGyroIOSim;
+import frc.robot.Subsystems.swerve.SwerveModuleIO;
+import frc.robot.Subsystems.swerve.SwerveModuleIOSim;
+import frc.robot.Subsystems.swerve.SwerveModuleIOSparkMax;
 import frc.robot.Subsystems.Vision;
 import frc.robot.Telemetry.AlertManager;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -31,7 +38,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
  * the cached inputs object.
  */
 public class Robot extends LoggedRobot {
-  private final DriveControl swerveBase = new UnconfiguredDrive();
+  private final DriveControl swerveBase = createDrive();
   private final Vision vision = Vision.getInstance();
   private final Teleop teleop = new Teleop(swerveBase);
   private final AutoMissionExecutor autoExecutor = new AutoMissionExecutor();
@@ -72,6 +79,45 @@ public class Robot extends LoggedRobot {
     Telemetry.log("Auto/Selected", AUTO_DO_NOTHING);
     // No robotInit() in 2027: one-time init runs here in the constructor.
     SubsystemManager.initializeSubsystems();
+  }
+
+  /** Drive factory: sim twins off-hardware, SparkMax + stub gyro on real. */
+  private static DriveControl createDrive() {
+    if (Constants.getMode() == Constants.Mode.REAL) {
+      return new SwerveDrive(
+          new SwerveModuleIO[] {
+            new SwerveModuleIOSparkMax(
+                PortMap.RESERVED_DRIVE_FL,
+                PortMap.RESERVED_STEER_FL,
+                false,
+                SwerveConstants.DRIVE_CURRENT_LIMIT_AMPS),
+            new SwerveModuleIOSparkMax(
+                PortMap.RESERVED_DRIVE_FR,
+                PortMap.RESERVED_STEER_FR,
+                false,
+                SwerveConstants.DRIVE_CURRENT_LIMIT_AMPS),
+            new SwerveModuleIOSparkMax(
+                PortMap.RESERVED_DRIVE_BL,
+                PortMap.RESERVED_STEER_BL,
+                false,
+                SwerveConstants.DRIVE_CURRENT_LIMIT_AMPS),
+            new SwerveModuleIOSparkMax(
+                PortMap.RESERVED_DRIVE_BR,
+                PortMap.RESERVED_STEER_BR,
+                false,
+                SwerveConstants.DRIVE_CURRENT_LIMIT_AMPS)
+          },
+          // No chassis IMU yet: disconnected stub reports origin-only heading.
+          new SwerveGyroIO() {},
+          SwerveConstants.modulePositions());
+    }
+    return new SwerveDrive(
+        new SwerveModuleIO[] {
+          new SwerveModuleIOSim(), new SwerveModuleIOSim(),
+          new SwerveModuleIOSim(), new SwerveModuleIOSim()
+        },
+        new SwerveGyroIOSim(),
+        SwerveConstants.modulePositions());
   }
 
   /** Fresh mission per selection — chooser holds names, never stateful instances. */

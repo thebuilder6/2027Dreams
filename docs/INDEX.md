@@ -21,6 +21,7 @@ New student? Read `README.md` → `docs/ONBOARDING.md` instead, then come back h
 | `RESOURCES.md` | Vendor docs, 2027 migration sources, leading-team repos (links only) |
 | `VISION.md` | VisionIO contract, empty sim twin, validity policy |
 | `TELEOP_AUTO.md` | Driver bindings, mission executor, template missions |
+| `V3_SPIKE.md` | Commands-v3 evaluation, mutual-exclusion verdict |
 | `COORDINATION.md` | Lock reasoning, conflict matrix, recovery recipes |
 | `SWERVE_SETUP.md` | YAGSL JSONs, vendorpins, sim-without-hardware |
 | `MECHANISMS.md` | TemplateIO consumers, SparkMax wrapper, RobotState, battery model |

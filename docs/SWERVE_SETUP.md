@@ -1,52 +1,56 @@
 ---
-title: Swerve Setup (YAGSL — parked)
+title: Swerve Setup (vendor-free scaffold)
 audience: [human, ai]
 owner: programming-leads
 last_verified: 2026-10-07
-status: needs-review
+status: living
 ---
 
-# Swerve setup — PARKED until YAGSL-2027 (was: YAGSL 2026.1.14 + sim)
+# Swerve setup — temporary vendor-free scaffold (YAGSL is the target)
 
-> **Branch `wpilib-2027-alpha7`:** no YAGSL 2027 release exists, so the whole
-> stack moved to `attic/yagsl-drive` (code + JSONs + tests + return path).
-> `Teleop` and missions program to `Subsystems/DriveControl.java`; `Robot`
-> wires `UnconfiguredDrive`. Everything below describes the parked 2026 state
-> and reactivates on return — do not treat file paths here as current.
+> **Branch `wpilib-2027-alpha7`:** YAGSL has no 2027 release, so the robot
+> drives on `Subsystems/SwerveDrive.java` (WPILib kinematics + `ModuleIO`,
+> 6328 pattern) behind `Subsystems/DriveControl.java`. **Temporary by team
+> decision** — YAGSL returns when a 2027 release lands (return path +
+> 8.18 schema warning in `attic/yagsl-drive/README.md`).
 
 ## Scope
 
-Covers the `deploy/swerve` JSONs, vendorpins, and how sim works without
-hardware. Does **not** cover path following, vision fusion, or tuning — those
-land as separate features.
+Covers the scaffold's geometry placeholders, control law limits, and how sim
+works without hardware. Does **not** cover path following, vision fusion, or
+tuning — those land as separate features.
 
 ## Content
 
-- Vendorpins at park time (`attic/2026-vendordeps/`): YAGSL `2026.1.14`,
-  REVLib `2026.0.5`, plus required-but-unused Phoenix5/6-replay, Redux,
-  Thrifty JSONs so YAGSL resolves. Don't bump without checking sim compat.
-- `attic/yagsl-drive/src/main/deploy/swerve/` (8 files) is **placeholder
-  config copied from the 2026 robot**. Before wiring to hardware: regenerate
-  with the YAGSL configurator against YOUR chassis (module CAN IDs, encoder
-  offsets, wheel size, gear ratios). **Never hand-guess
-  `absoluteEncoderOffset`** — a wrong offset drives sideways.
-  `SwerveConfigTest` guards file presence and shape, never offset values.
-- Root `swervedrive.json`: navX IMU, `invertedIMU false`, 4 module names.
-- Sim needs no hardware: `DriveIOSim` wraps the parsed `SwerveDrive` (motors
-  expose sim states in simulation); constructed with `null` it degrades to a
-  pose/voltage recorder for physics-free tests. Rigid-body carpet physics
-  (IronMaple-style) is a future upgrade, not a requirement.
-- `SwerveBase` owns the parser. Nothing else touches YAGSL. Public API
-  (== `DriveControl`): `drive / driveFieldOriented / stop /
-  zeroGyroWithAlliance / getPose / getHeading`. Start pose Blue `(1,4,0°)` /
-  Red `(len−1,4,180°)`; length comes from `FieldMap`, not a literal.
+- `Subsystems/swerve/`: `SwerveModuleIO` (inputs + outputs structs, same shape
+  as `MechanismIO`), `SwerveModuleIOSim` (reuses the `MechanismIOSim` plant ×2
+  — dynamics math has one owner), `SwerveModuleIOSparkMax` (2× NEO via
+  `Hardware/SparkMaxMotor`; steer angle is relative-encoder placeholder),
+  `SwerveGyroIO`/`SwerveGyroIOSim` (integrates commanded chassis rate).
+- `Subsystems/SwerveDrive.java`: odometry + open-loop law (kV feedforward on
+  drive matched to the sim plant, P on wrapped steer error). **Limits, stated
+  plainly:** no slip model, no closed-loop wheel control, sim gyro measures
+  commanded (not physical) motion, all `SwerveConstants` are placeholders.
+- Geometry placeholders (`Data/Constants.SwerveConstants`, all unmeasured):
+  0.55 m track/width, 0.0508 m wheel radius, 6:1 drive / 12:1 steer, steer P
+  0.12 V/deg. Measure on the chassis — never tune around wrong geometry.
+- CAN IDs (`Hardware/PortMap`): `RESERVED_DRIVE_*`/`RESERVED_STEER_*`, all −1.
+  Real mode constructs against them and reports disconnected until wired
+  (null-safe `SparkMaxMotor` path) — do not wire hardware to these yet.
+- `Robot.java` picks impls by `Constants.getMode()` (sim twins off-hardware,
+  SparkMax + stub gyro on real). Ctor-injection throughout, so tests inject
+  sim IOs directly (see `SwerveDriveTest`).
+- Sim needs no hardware: `gradlew run` drives with a plugged controller,
+  `Field` widget shows the pose. Physics-free unit tests construct
+  `SwerveModuleIOSim` directly.
 
 ## Verification
 
-- Last verified on 2026 tree: `cleanTest test --offline` 11/11 green 2026-10-07.
-- Next review due: when YAGSL-2027 lands (execute `attic/yagsl-drive/README.md`).
+- Verified against: `test --offline --rerun-tasks` 2026-10-07 (see `docs/CHANGELOG.md`).
+- Next review due: chassis measured (replace placeholders) or YAGSL-2027 lands
+  (execute `attic/yagsl-drive/README.md`).
 
 ## Related
 
 - `docs/ARCHITECTURE.md`, `docs/TEAM_COMPARISON.md` (YAGSL vs hand-rolled),
-  `attic/yagsl-drive/README.md`
+  `attic/yagsl-drive/README.md`, `docs/MECHANISMS.md` (IO pattern)

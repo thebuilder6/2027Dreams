@@ -15,7 +15,7 @@ All commands need the WPILib 2026 JDK on `PATH`:
 $env:JAVA_HOME = "C:\Users\Public\wpilib\2026\jdk"
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 .\gradlew.bat compileJava --offline   # fast compile
-.\gradlew.bat test --offline          # full suite (13 files / 33 tests)
+.\gradlew.bat test --offline          # full suite (13 files / 32 tests)
 .\gradlew.bat simulateJava            # desktop SimGUI (needs sim-gui lock)
 ```
 

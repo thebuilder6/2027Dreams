@@ -17,6 +17,10 @@ public final class PortMap {
   public static final int RESERVED_DRIVE_FR = -1;
   public static final int RESERVED_DRIVE_BL = -1;
   public static final int RESERVED_DRIVE_BR = -1;
+  public static final int RESERVED_STEER_FL = -1;
+  public static final int RESERVED_STEER_FR = -1;
+  public static final int RESERVED_STEER_BL = -1;
+  public static final int RESERVED_STEER_BR = -1;
   public static final int RESERVED_MECHANISM_A = -1;
   public static final int RESERVED_MECHANISM_B = -1;
 

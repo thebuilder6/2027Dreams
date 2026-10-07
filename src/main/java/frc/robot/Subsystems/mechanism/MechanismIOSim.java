@@ -7,10 +7,12 @@ import org.wpilib.math.system.DCMotor;
  * alpha-7 removed the {@code LinearSystemId} plant factories, so the model
  * below is written out explicitly).
  *
- * <p>Discrete dynamics, Euler at the 20 ms loop:
- * {@code ω += (A·ω + B·V)·dt}, with {@code A = −G²·Kt/(Kv·R·J)} and
- * {@code B = G·Kt/(R·J)} — the same model {@code LinearSystemId} generated in
- * 2026. Current draw comes from {@code DCMotor.getCurrent(ω, V)}.
+ * <p>Discrete dynamics, exact step response at the 20 ms loop:
+ * {@code ω += (ωss − ω)·(1 − e^(A·dt))} with {@code ωss = −(B/A)·V},
+ * {@code A = −G²·Kt/(Kv·R·J)}, {@code B = G·Kt/(R·J)} — the same model
+ * {@code LinearSystemId} generated in 2026. Exact (not Euler) so stiff
+ * plants (high gearing, tiny inertia — e.g. steer) stay stable at 20 ms.
+ * Current draw comes from {@code DCMotor.getCurrent(ω, V)}.
  */
 public class MechanismIOSim implements MechanismIO {
   public static final double LOOP_PERIOD_SECS = 0.02;
@@ -43,7 +45,10 @@ public class MechanismIOSim implements MechanismIO {
 
   @Override
   public void updateInputs(MechanismIOInputs inputs) {
-    velocityRadsPerSec += (plantA * velocityRadsPerSec + plantB * appliedVolts) * LOOP_PERIOD_SECS;
+    double steadyStateRadsPerSec = -(plantB / plantA) * appliedVolts;
+    velocityRadsPerSec +=
+        (steadyStateRadsPerSec - velocityRadsPerSec)
+            * (1.0 - Math.exp(plantA * LOOP_PERIOD_SECS));
     positionRads += velocityRadsPerSec * LOOP_PERIOD_SECS;
     inputs.connected = true;
     inputs.positionRads = positionRads;

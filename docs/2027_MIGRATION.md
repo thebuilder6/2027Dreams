@@ -30,12 +30,14 @@ Source: `docs.wpilib.org/en/2027/.../yearly-changelog` + `.../systemcore-introdu
 5. [x] `Robot extends LoggedRobot` survives (akit alpha-6, same `junction` packages). DONE 2026-10-07 on akit 26.0.2; re-verified on alpha-6 this migration.
 6. [x] Removed-HW compile: no SPI/servo/relay references in tree (grep clean; YAGSL/CANcoder code left with the attic).
 7. [ ] Image SystemCore + new Driver Station; `deploy` smoke test before any feature work. **Still open — needs hardware.**
-8. [ ] Drive: blocked on YAGSL-2027. `Subsystems/DriveControl.java` is the seam (`Teleop` + missions program to it); `UnconfiguredDrive` is the explicit pending state (latched alert, ignores commands); full YAGSL stack + return path in `attic/yagsl-drive/README.md`.
+8. [x] Drive: temporary vendor-free scaffold live (`Subsystems/SwerveDrive.java` on `DriveControl`; `UnconfiguredDrive` deleted). YAGSL stays the target — return path in `attic/yagsl-drive/README.md`.
 
 ## Alpha-7 API surprises (not in the pre-install research)
 
 - No `robotInit()` — one-time init moves into the constructor. Test mode is `utilityInit`/`utilityPeriodic`.
 - `DCMotorSim` ctor takes a `LinearSystem`; the `LinearSystemId` plant factories are gone. `MechanismIOSim` now integrates the analytic first-order motor model (`A = −G²·Kt/(Kv·R·J)`, `B = G·Kt/(R·J)`) with current from `DCMotor.getCurrent(ω, V)`.
+- Exact, not Euler: `MechanismIOSim` integrates the closed-form step response (`ω += (ωss − ω)·(1 − e^(A·dt))`) — identical for slow plants, stable for stiff ones (high gearing + tiny inertia, e.g. steer, explodes under Euler at 20 ms; found by the swerve scaffold's failing test).
+- `SwerveModuleState` → `SwerveModuleVelocity`; kinematics are immutable (`desaturateWheelVelocities` returns a new array, `@NoDiscard` enforced at compile).
 - `HAL.initialize()` is no-arg in tests.
 - `Selectable` needs `publishTunable(Tunables.getTable(...))` to appear on dashboards; `Field2d` publishes via `Telemetry.log` (it implements `TelemetryLoggable`).
 - Sim runs via `gradlew run` (application plugin), not `simulateJava*`.

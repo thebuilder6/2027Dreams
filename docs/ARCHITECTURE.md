@@ -21,7 +21,7 @@ TELEMETRY                    Alert + AlertManager + wpilog (Dashboard/Tunables l
 - `Interfaces/Subsystem.java` — project contract. Extends WPILib's command `Subsystem` so Commands v2/v3 can require our subsystems later, but adds `update/initialize/log/simulationUpdate/getSimulationCurrentDraw/isEnabled/getName`.
 - `Subsystems/template/TemplateIO.java` — copy-paste IO starting point (6328 pattern): `@AutoLog` inputs struct + outputs struct (`applyOutputs`), no-op defaults. Every mechanism IO follows it: `updateInputs` → `processInputs` → logic reads cached inputs.
 - `Subsystems/SubsystemManager.java` — static registry, snapshot init, throttled fault isolation.
-- `Subsystems/DriveControl.java` — minimal drive contract (`Teleop` + missions program to it). `UnconfiguredDrive` is the explicit pending state; the YAGSL `SwerveBase` returns from `attic/yagsl-drive` when YAGSL-2027 lands.
+- `Subsystems/DriveControl.java` — minimal drive contract (`Teleop` + missions program to it). Temporary vendor-free `SwerveDrive` (WPILib kinematics + `swerve/ModuleIO`) implements it; the YAGSL `SwerveBase` returns from `attic/yagsl-drive` when YAGSL-2027 lands (see `docs/SWERVE_SETUP.md`).
 - `Data/Constants.java` — mode (`REAL/SIM`), drive limits, slew rates. No game numbers.
 - `Hardware/PortMap.java` — single owner of CAN/DIO/USB IDs. Empty/reserved until chassis is known.
 - `Navigation/FieldMap.java` — field length/width + zone helpers, fed by the active `GameDefinition`. No hardcoded 2026 hub/ramp/trench geometry.

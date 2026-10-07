@@ -46,7 +46,7 @@ Success ends with `BUILD SUCCESSFUL`.
 
 ```powershell
 .\gradlew.bat test --offline --tests "frc.robot.Utils.AllianceFlipUtilTest"
-.\gradlew.bat test --offline   # full suite: 13 files / 33 tests
+.\gradlew.bat test --offline   # full suite: 13 files / 32 tests
 ```
 
 Green means `BUILD SUCCESSFUL`. Ignore two harmless artifacts: a
